@@ -1,0 +1,2 @@
+include *.ini *.rst
+recursive-include tests *.py

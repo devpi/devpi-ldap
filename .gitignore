@@ -1,0 +1,10 @@
+*.egg-info
+*.sublime-*
+.cache/
+/.coverage
+/.tox/
+/bin/
+/dist/
+/htmlcov/
+/include/
+/lib/
