@@ -68,3 +68,5 @@ Now the group setup:
 - In the list right click on the added group and choose "Properties"
 - Look for "member" and add the user with the full distinguished name "CN=testuser,CN=Partition1,DC=Woodgrove,DC=COM"
 - Now add the user to the existing group "Readers"
+
+To get the current IP of the VM in case you need it, start the "PowerShell" (should be in the quick start area of the task bar) and type "ipconfig".
