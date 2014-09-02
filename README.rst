@@ -84,7 +84,7 @@ An example with user search and Active Directory might look like this:
             "user_search": {
                 "base": "CN=Partition1,DC=Example,DC=COM",
                 "filter": "(&(objectClass=user)(sAMAccountName={username}))",
-                "attribute_name": "DN"},
+                "attribute_name": "distinguishedName"},
             "group_search": {
                 "base": "CN=Partition1,DC=Example,DC=COM",
                 "filter": "(&(objectClass=group)(member={userdn}))",

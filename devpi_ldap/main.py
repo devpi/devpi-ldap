@@ -1,10 +1,17 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from devpi_server.log import threadlog
+try:
+    from devpi_server.auth import AuthException
+except ImportError:
+    class AuthException(Exception):
+        pass
 import getpass
 import json
 import ldap3
 import os
+import socket
+import sys
 
 
 def escape(s):
@@ -20,7 +27,6 @@ def escape(s):
 
 
 def fatal(msg):
-    import sys
     threadlog.error(msg)
     sys.exit(1)
 
@@ -71,11 +77,27 @@ class LDAP(dict):
             threadlog.error("Search failed %s %s: %s" % (search_filter, config, conn.result))
             return []
 
+    def _open_and_bind(self, conn):
+        try:
+            conn.open()
+            if not conn.bind():
+                return False
+        except socket.timeout:
+            msg = "Timeout on LDAP connect to %s" % self['url']
+            threadlog.exception(msg)
+            raise AuthException(msg), None, sys.exc_traceback
+        except ldap3.core.exceptions.LDAPException:
+            msg = "Couldn't open LDAP connection to %s" % self['url']
+            threadlog.exception(msg)
+            raise AuthException(msg), None, sys.exc_traceback
+        return True
+
     def _userdn(self, username):
         if 'user_template' in self:
             return self['user_template'].format(username=username)
         else:
             conn = self.connection(self.server())
+            self._open_and_bind(conn)
             result = self._search(conn, self['user_search'], username=username)
             if len(result) == 1:
                 return result[0]
@@ -85,13 +107,23 @@ class LDAP(dict):
                 threadlog.error("Multiple results for user '%s' found.")
 
     def validate(self, username, password):
-        threadlog.debug("Validating user '%s' against LDAP at self['url']." % username)
+        """ Tries to bind the user against the LDAP server using the supplied
+            username and password.
+
+            If no user can be found, returns None.
+            If the binding fails, returns False.
+            On success a list of group names the user is member of will be
+            returned, if no group search is set up, then the list will always
+            be empty.
+        """
+        threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
         username = escape(username)
         userdn = self._userdn(username)
-        conn = self.connection(self.server(), userdn=userdn, password=password)
-        conn.open()
-        if not conn.bind():
+        if not userdn:
             return None
+        conn = self.connection(self.server(), userdn=userdn, password=password)
+        if not self._open_and_bind(conn):
+            return False
         config = self.get('group_search', None)
         if not config:
             return []
@@ -101,7 +133,6 @@ class LDAP(dict):
 def main():
     import argparse
     import logging
-    import socket
     socket.setdefaulttimeout(10)
 
     logging.basicConfig(
@@ -115,4 +146,11 @@ def main():
     if not username:
         username = raw_input("Username: ")
     password = getpass.getpass("Password: ")
-    print("Result: %s" % ldap.validate(username, password))
+    result = ldap.validate(username, password)
+    print("Result: %s" % result)
+    if result is None:
+        print("No user named '%s' found." % username)
+    elif result is False:
+        print("Authentication of user named '%s' failed." % username)
+    else:
+        print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result))
