@@ -1,6 +1,8 @@
 devpi-ldap: LDAP authentication for devpi-server
 ================================================
 
+.. note:: At this time you can use the included ``devpi-ldap`` script to test how to setup the plugin for your environment, but the plugin doesn't enable authentication in ``devpi-server`` yet, since the support in ``devpi-server`` isn't finished so far.
+
 Installation
 ------------
 
