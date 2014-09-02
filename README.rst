@@ -30,10 +30,10 @@ To configure LDAP, create a json file with a dictionary containing another dicti
 
 ``user_template``
   The template to generate the distinguished name for the user.
-  If the structure is fixed, this is faster than specifying a ``user_search``.
+  If the structure is fixed, this is faster than specifying a ``user_search``, but ``devpi-server`` can't know whether a user exists or not.
 
 ``user_search``
-  If you can't or don't want to user ``user_template``, then these are the search settings for the users distinguished name.
+  If you can't or don't want to use ``user_template``, then these are the search settings for the users distinguished name.
   You can use ``username`` in the search filter.
   See specifics below.
 

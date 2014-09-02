@@ -6,6 +6,7 @@ try:
 except ImportError:
     class AuthException(Exception):
         pass
+import argparse
 import getpass
 import json
 import ldap3
@@ -163,8 +164,24 @@ class LDAP(dict):
         return self._search(conn, config, username=username, userdn=userdn)
 
 
+class LDAPConfigAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, LDAP(values))
+
+
+def devpiserver_add_parser_options(parser):
+    ldap = parser.addgroup("LDAP authentication")
+    ldap.addoption(
+        "--ldap-config", action=LDAPConfigAction,
+        help="LDAP configuration file")
+
+
+def devpiserver_auth_user(model, username, password):
+    ldap = model.xom.config.args.ldap_config
+    return ldap.validate(username, password)
+
+
 def main():
-    import argparse
     import logging
     socket.setdefaulttimeout(10)
 
