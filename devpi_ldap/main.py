@@ -32,6 +32,9 @@ def fatal(msg):
 
 
 class LDAP(dict):
+    ldap3 = ldap3  # for dependency injection
+    LDAPException = ldap3.core.exceptions.LDAPException  # for dependency injection
+
     def __init__(self, path):
         self.path = os.path.abspath(path)
         if not os.path.exists(self.path):
@@ -57,10 +60,10 @@ class LDAP(dict):
                 sorted(unknown_keys)))
 
     def server(self):
-        return ldap3.Server(self['url'])
+        return self.ldap3.Server(self['url'])
 
     def connection(self, server, userdn=None, password=None):
-        conn = ldap3.Connection(
+        conn = self.ldap3.Connection(
             server,
             auto_referrals=self.get('referrals', True),
             read_only=True, user=userdn, password=password)
@@ -86,7 +89,7 @@ class LDAP(dict):
             msg = "Timeout on LDAP connect to %s" % self['url']
             threadlog.exception(msg)
             raise AuthException(msg), None, sys.exc_traceback
-        except ldap3.core.exceptions.LDAPException:
+        except self.LDAPException:
             msg = "Couldn't open LDAP connection to %s" % self['url']
             threadlog.exception(msg)
             raise AuthException(msg), None, sys.exc_traceback
