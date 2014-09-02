@@ -57,6 +57,11 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
   To use replacements, put them in curly braces.
   Example: ``(&(objectClass=group)(member={userdn}))``
 
+``scope``
+  The scope for the search.
+  Valid values are ``base-object``, ``single-level`` and ``whole-subtree``.
+  The default is ``whole-subtree``.
+
 ``attribute_name``
   The name of the attribute which should be extracted from the search result.
 

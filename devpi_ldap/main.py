@@ -50,14 +50,35 @@ class LDAP(dict):
         else:
             if 'user_search' not in self:
                 fatal("You need to set either 'user_template' or 'user_search' in LDAP config.")
+            self._validate_search_settings('user_search')
         if 'group_search' not in self:
             threadlog.info("No group search setup for LDAP.")
+        else:
+            self._validate_search_settings('group_search')
         known_keys = set((
             'url', 'user_template', 'user_search', 'group_search', 'referrals'))
         unknown_keys = set(self.keys()) - known_keys
         if unknown_keys:
             fatal("Unknown option(s) '%s' in LDAP config." % ', '.join(
                 sorted(unknown_keys)))
+
+    def _validate_search_settings(self, configname):
+        config = self[configname]
+        for key in ('base', 'filter', 'attribute_name'):
+            if key not in config:
+                fatal("Required option '%s' not in LDAP '%s' config." % (
+                    key, configname))
+        known_keys = set((
+            'base', 'filter', 'scope', 'attribute_name'))
+        unknown_keys = set(config.keys()) - known_keys
+        if unknown_keys:
+            fatal("Unknown option(s) '%s' in LDAP '%s' config." % (
+                ', '.join(sorted(unknown_keys)), configname))
+        if 'scope' in config:
+            try:
+                self._search_scope(config)
+            except KeyError:
+                fatal("Unknown search scope '%s'." % config['scope'])
 
     def server(self):
         return self.ldap3.Server(self['url'])
@@ -69,11 +90,20 @@ class LDAP(dict):
             read_only=True, user=userdn, password=password)
         return conn
 
+    def _search_scope(self, config):
+        scopes = {
+            'base-object': self.ldap3.SEARCH_SCOPE_BASE_OBJECT,
+            'single-level': self.ldap3.SEARCH_SCOPE_SINGLE_LEVEL,
+            'whole-subtree': self.ldap3.SEARCH_SCOPE_WHOLE_SUBTREE}
+        return scopes[config.get('scope', 'whole-subtree')]
+
     def _search(self, conn, config, **kw):
         search_filter = config['filter'].format(**kw)
+        search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
         found = conn.search(
-            config['base'], search_filter, attributes=[attribute_name])
+            config['base'], search_filter,
+            search_scope=search_scope, attributes=[attribute_name])
         if found:
             return sum((x['attributes'][attribute_name] for x in conn.response), [])
         else:
