@@ -8,11 +8,11 @@ except ImportError:
         pass
 import argparse
 import getpass
-import json
 import ldap3
 import os
 import socket
 import sys
+import yaml
 
 
 def escape(s):
@@ -41,7 +41,7 @@ class LDAP(dict):
         if not os.path.exists(self.path):
             fatal("No config at '%s'." % self.path)
         with open(self.path) as f:
-            _config = json.load(f)
+            _config = yaml.load(f)
         self.update(_config.get('devpi-ldap', {}))
         if 'url' not in self:
             fatal("No url in LDAP config.")
@@ -155,6 +155,8 @@ class LDAP(dict):
         userdn = self._userdn(username)
         if not userdn:
             return None
+        if not password.strip():
+            return False
         conn = self.connection(self.server(), userdn=userdn, password=password)
         if not self._open_and_bind(conn):
             return False
