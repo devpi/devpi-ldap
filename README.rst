@@ -21,7 +21,7 @@ Configuration
 
 A script named ``devpi-ldap`` can be used to test your LDAP configuration.
 
-To configure LDAP, create a json file with a dictionary containing another dictionary under the ``devpi-ldap`` key with the following options:
+To configure LDAP, create a yaml file with a dictionary containing another dictionary under the ``devpi-ldap`` key with the following options:
 
 ``url``
   The url of the LDAP server.
@@ -67,30 +67,30 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
 
 The JSON file should then look similar to this:
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-        "devpi-ldap": {
-            "url": "ldap://example.com",
-            "user_template": "CN={username},CN=Partition1,DC=Example,DC=COM",
-            "group_search": {
-                "base": "CN=Partition1,DC=Example,DC=COM",
-                "filter": "(&(objectClass=group)(member={userdn}))",
-                "attribute_name": "CN"}}}
+    ---
+    devpi-ldap:
+      url: ldap://example.com
+      user_template: CN={username},CN=Partition1,DC=Example,DC=COM
+      group_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=group)(member={userdn}))
+        attribute_name: CN
 
 An example with user search and Active Directory might look like this:
 
-.. code-block:: json
+.. code-block:: yaml
 
-    {
-        "devpi-ldap": {
-            "url": "ldap://example.com",
-            "referrals": false,
-            "user_search": {
-                "base": "CN=Partition1,DC=Example,DC=COM",
-                "filter": "(&(objectClass=user)(sAMAccountName={username}))",
-                "attribute_name": "distinguishedName"},
-            "group_search": {
-                "base": "CN=Partition1,DC=Example,DC=COM",
-                "filter": "(&(objectClass=group)(member={userdn}))",
-                "attribute_name": "CN"}}}
+    ---
+    devpi-ldap:
+      url: ldap://example.com
+      user_template: CN={username},CN=Partition1,DC=Example,DC=COM
+      user_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=user)(sAMAccountName={username}))
+        attribute_name: distinguishedName
+      group_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=group)(member={userdn}))
+        attribute_name: CN

@@ -154,16 +154,17 @@ class LDAP(dict):
         username = escape(username)
         userdn = self._userdn(username)
         if not userdn:
-            return None
+            return dict(status="unknown")
         if not password.strip():
-            return False
+            return dict(status="reject")
         conn = self.connection(self.server(), userdn=userdn, password=password)
         if not self._open_and_bind(conn):
-            return False
+            return dict(status="reject")
         config = self.get('group_search', None)
         if not config:
-            return []
-        return self._search(conn, config, username=username, userdn=userdn)
+            return dict(status="ok")
+        groups = self._search(conn, config, username=username, userdn=userdn)
+        return dict(status="ok", groups=groups)
 
 
 class LDAPConfigAction(argparse.Action):
@@ -183,7 +184,7 @@ def devpiserver_auth_user(model, username, password):
     return ldap.validate(username, password)
 
 
-def main():
+def main(argv=None):
     import logging
     socket.setdefaulttimeout(10)
 
@@ -192,7 +193,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(action='store', dest='config')
     parser.add_argument(nargs='?', action='store', dest='username')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     ldap = LDAP(args.config)
     username = args.username
     if not username:
@@ -200,9 +201,9 @@ def main():
     password = getpass.getpass("Password: ")
     result = ldap.validate(username, password)
     print("Result: %s" % result)
-    if result is None:
+    if result["status"] == "unknown":
         print("No user named '%s' found." % username)
-    elif result is False:
+    elif result["status"] == "reject":
         print("Authentication of user named '%s' failed." % username)
     else:
-        print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result))
+        print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result.get("groups", [])))
