@@ -15,6 +15,20 @@ import sys
 import yaml
 
 
+PY3 = sys.version_info[0] == 3
+
+
+if PY3:
+    def reraise(tp, value, tb=None):
+        if value is None:
+            value = tp()
+        if value.__traceback__ is not tb:
+            raise value.with_traceback(tb)
+        raise value
+else:
+    exec("""def reraise(tp, value, tb=None):\n    raise tp, value, tb""")
+
+
 def escape(s):
     repl = (
         ('*', '\\\\2A'),
@@ -119,11 +133,11 @@ class LDAP(dict):
         except socket.timeout:
             msg = "Timeout on LDAP connect to %s" % self['url']
             threadlog.exception(msg)
-            raise AuthException(msg), None, sys.exc_traceback
+            reraise(AuthException, AuthException(msg), sys.exc_info()[2])
         except self.LDAPException:
             msg = "Couldn't open LDAP connection to %s" % self['url']
             threadlog.exception(msg)
-            raise AuthException(msg), None, sys.exc_traceback
+            reraise(AuthException, AuthException(msg), sys.exc_info()[2])
         return True
 
     def _userdn(self, username):
@@ -185,6 +199,7 @@ def devpiserver_auth_user(model, username, password):
 
 
 def main(argv=None):
+    import json
     import logging
     socket.setdefaulttimeout(10)
 
@@ -200,7 +215,7 @@ def main(argv=None):
         username = raw_input("Username: ")
     password = getpass.getpass("Password: ")
     result = ldap.validate(username, password)
-    print("Result: %s" % result)
+    print("Result: %s" % json.dumps(result))
     if result["status"] == "unknown":
         print("No user named '%s' found." % username)
     elif result["status"] == "reject":

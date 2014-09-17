@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import mock
 import sys
 import pytest
@@ -154,7 +154,7 @@ def test_main_no_user(capsys, main, user_template_config):
     main([user_template_config.strpath, 'user'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        "Result: {'status': u'reject'}",
+        'Result: {"status": "reject"}',
         "Authentication of user named 'user' failed."]
 
 
@@ -164,7 +164,7 @@ def test_main_user(MockServer, capsys, getpass, main, user_template_config):
     main([user_template_config.strpath, 'user'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        "Result: {'status': u'ok'}",
+        'Result: {"status": "ok"}',
         "Authentication successful, the user is member of the following groups: "]
 
 
@@ -172,7 +172,7 @@ def test_main_no_user_with_search(capsys, main, user_search_config):
     main([user_search_config.strpath, 'user'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        "Result: {'status': u'unknown'}",
+        'Result: {"status": "unknown"}',
         "No user named 'user' found."]
 
 
@@ -182,5 +182,24 @@ def test_main_user_with_search(MockServer, capsys, getpass, main, user_search_co
     main([user_search_config.strpath, 'user'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
-        "Result: {'status': u'ok'}",
+        'Result: {"status": "ok"}',
         "Authentication successful, the user is member of the following groups: "]
+
+
+def test_socket_timeout(LDAP, user_template_config):
+    from devpi_ldap.main import AuthException
+    import socket
+    LDAP.ldap3.Connection.open = mock.Mock(side_effect=socket.timeout())
+    ldap = LDAP(user_template_config.strpath)
+    with pytest.raises(AuthException) as e:
+        ldap.validate('user', 'foo')
+    assert e.value.args[0] == "Timeout on LDAP connect to ldap://localhost"
+
+
+def test_ldap_exception(LDAP, user_template_config):
+    from devpi_ldap.main import AuthException
+    LDAP.ldap3.Connection.open = mock.Mock(side_effect=LDAP.LDAPException())
+    ldap = LDAP(user_template_config.strpath)
+    with pytest.raises(AuthException) as e:
+        ldap.validate('user', 'foo')
+    assert e.value.args[0] == "Couldn't open LDAP connection to ldap://localhost"
