@@ -65,7 +65,7 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
 ``attribute_name``
   The name of the attribute which should be extracted from the search result.
 
-The JSON file should then look similar to this:
+The YAML file should then look similar to this:
 
 .. code-block:: yaml
 
