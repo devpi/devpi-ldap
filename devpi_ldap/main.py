@@ -215,7 +215,7 @@ def main(argv=None):
         username = raw_input("Username: ")
     password = getpass.getpass("Password: ")
     result = ldap.validate(username, password)
-    print("Result: %s" % json.dumps(result))
+    print("Result: %s" % json.dumps(result, sort_keys=True))
     if result["status"] == "unknown":
         print("No user named '%s' found." % username)
     elif result["status"] == "reject":

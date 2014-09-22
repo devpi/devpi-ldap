@@ -106,10 +106,12 @@ class MockConnection:
                     (k, [user[k]]) for k in attributes))]
                 return True
         elif search_filter[0] == 'group':
-            group = self.server.groups.get(search_filter[1])
-            if group is not None:
-                self.response = [dict(attributes=dict(
-                    (k, [group[k]]) for k in attributes))]
+            user = self.server.users.get(search_filter[1])
+            if user is not None and 'groups' in user:
+                self.response = [
+                    dict(attributes=dict(
+                        (k, [g[k]]) for k in attributes))
+                    for g in user['groups']]
                 return True
         self.result = "Search failed"
         return False
@@ -184,6 +186,26 @@ def test_main_user_with_search(MockServer, capsys, getpass, main, user_search_co
     assert out.splitlines() == [
         'Result: {"status": "ok"}',
         "Authentication successful, the user is member of the following groups: "]
+
+
+def test_main_user_with_group(MockServer, capsys, getpass, main, group_user_template_config):
+    MockServer.users['user'] = dict(pw="password", groups=[dict(cn='users')])
+    getpass.return_value = "password"
+    main([group_user_template_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"groups": ["users"], "status": "ok"}',
+        "Authentication successful, the user is member of the following groups: users"]
+
+
+def test_main_user_with_search_with_group(MockServer, capsys, getpass, main, group_user_search_config):
+    MockServer.users['user'] = dict(pw="password", dn="user", groups=[dict(cn='users')])
+    getpass.return_value = "password"
+    main([group_user_search_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"groups": ["users"], "status": "ok"}',
+        "Authentication successful, the user is member of the following groups: users"]
 
 
 def test_socket_timeout(LDAP, user_template_config):
