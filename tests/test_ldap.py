@@ -43,6 +43,19 @@ def user_search_config(ldap_config):
 
 
 @pytest.fixture
+def userdn_search_config(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "url": "ldap://localhost",
+        "user_search": {
+            "userdn": "search",
+            "password": "foo",
+            "base": "",
+            "filter": "user:{username}",
+            "attribute_name": "dn"}}})
+    return ldap_config
+
+
+@pytest.fixture
 def group_user_template_config(ldap_config):
     ldap_config.dump({"devpi-ldap": {
         "url": "ldap://localhost",
@@ -70,6 +83,23 @@ def group_user_search_config(ldap_config):
 
 
 @pytest.fixture
+def group_userdn_search_config(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "url": "ldap://localhost",
+        "user_search": {
+            "userdn": "search",
+            "password": "foo",
+            "base": "",
+            "filter": "user:{username}",
+            "attribute_name": "dn"},
+        "group_search": {
+            "base": "",
+            "filter": "group:{userdn}",
+            "attribute_name": "cn"}}})
+    return ldap_config
+
+
+@pytest.fixture
 def MockServer():
     class MockServer:
         users = {}
@@ -82,19 +112,22 @@ def MockServer():
 class MockConnection:
     def __init__(self, server, **kw):
         self.server = server
-        self.kw = kw
+        self.user = kw.get('user')
+        self.password = kw.get('password')
 
     def open(self):
         pass
 
     def bind(self):
-        username = self.kw.get('user')
-        user = self.server.users.get(username)
-        if user is None:
-            return False
-        password = self.kw.get('password', False)
-        if password == '' or user['pw'] == password:
+        if self.user is None:
             return True
+        user = self.server.users.get(self.user)
+        if user is None:
+            self.result = "Bind failed, user not found"
+            return False
+        if self.password == '' or user['pw'] == self.password:
+            return True
+        self.result = "Bind failed, invalid credentials"
         return False
 
     def search(self, base, search_filter, search_scope, attributes):
@@ -188,6 +221,17 @@ def test_main_user_with_search(MockServer, capsys, getpass, main, user_search_co
         "Authentication successful, the user is member of the following groups: "]
 
 
+def test_main_user_with_search_userdn(MockServer, capsys, getpass, main, userdn_search_config):
+    MockServer.users['search'] = dict(pw="foo", dn="search")
+    MockServer.users['user'] = dict(pw="password", dn="user")
+    getpass.return_value = "password"
+    main([userdn_search_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"status": "ok"}',
+        "Authentication successful, the user is member of the following groups: "]
+
+
 def test_main_user_with_group(MockServer, capsys, getpass, main, group_user_template_config):
     MockServer.users['user'] = dict(pw="password", groups=[dict(cn='users')])
     getpass.return_value = "password"
@@ -202,6 +246,17 @@ def test_main_user_with_search_with_group(MockServer, capsys, getpass, main, gro
     MockServer.users['user'] = dict(pw="password", dn="user", groups=[dict(cn='users')])
     getpass.return_value = "password"
     main([group_user_search_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"groups": ["users"], "status": "ok"}',
+        "Authentication successful, the user is member of the following groups: users"]
+
+
+def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, main, group_userdn_search_config):
+    MockServer.users['search'] = dict(pw="foo", dn="search")
+    MockServer.users['user'] = dict(pw="password", dn="user", groups=[dict(cn='users')])
+    getpass.return_value = "password"
+    main([group_userdn_search_config.strpath, 'user'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         'Result: {"groups": ["users"], "status": "ok"}',

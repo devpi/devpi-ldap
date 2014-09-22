@@ -65,6 +65,13 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
 ``attribute_name``
   The name of the attribute which should be extracted from the search result.
 
+``userdn``
+  The distinguished name of the user which should be used for the search operation.
+  If you don't have anonymous user search or if the users can't search their own groups, then you need to set this to a user which has the necessary rights.
+
+``password``
+  The password for the user in ``userdn``.
+
 The YAML file should then look similar to this:
 
 .. code-block:: yaml

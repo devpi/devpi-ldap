@@ -84,7 +84,7 @@ class LDAP(dict):
                 fatal("Required option '%s' not in LDAP '%s' config." % (
                     key, configname))
         known_keys = set((
-            'base', 'filter', 'scope', 'attribute_name'))
+            'base', 'filter', 'scope', 'attribute_name', 'userdn', 'password'))
         unknown_keys = set(config.keys()) - known_keys
         if unknown_keys:
             fatal("Unknown option(s) '%s' in LDAP '%s' config." % (
@@ -94,6 +94,9 @@ class LDAP(dict):
                 self._search_scope(config)
             except KeyError:
                 fatal("Unknown search scope '%s'." % config['scope'])
+        if 'userdn' in config:
+            if 'password' not in config:
+                fatal("You have to set a 'password' if you use a 'userdn' in LDAP '%s' config." % configname)
 
     def server(self):
         return self.ldap3.Server(self['url'])
@@ -113,6 +116,30 @@ class LDAP(dict):
         return scopes[config.get('scope', 'whole-subtree')]
 
     def _search(self, conn, config, **kw):
+        config = dict(config)
+        search_userdn = config.get('userdn')
+        search_password = config.get('password')
+        if 'password' in config:
+            # obscure password in logs
+            config['password'] = '********'
+        if conn is None:
+            if search_userdn is None:
+                conn = self.connection(self.server())
+            else:
+                conn = self.connection(
+                    self.server(),
+                    userdn=search_userdn, password=search_password)
+            if not self._open_and_bind(conn):
+                threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
+                return []
+        else:
+            if search_userdn is not None and conn.user != search_userdn:
+                conn = self.connection(
+                    self.server(),
+                    userdn=search_userdn, password=search_password)
+                if not self._open_and_bind(conn):
+                    threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
+                    return []
         search_filter = config['filter'].format(**kw)
         search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
@@ -144,9 +171,7 @@ class LDAP(dict):
         if 'user_template' in self:
             return self['user_template'].format(username=username)
         else:
-            conn = self.connection(self.server())
-            self._open_and_bind(conn)
-            result = self._search(conn, self['user_search'], username=username)
+            result = self._search(None, self['user_search'], username=username)
             if len(result) == 1:
                 return result[0]
             elif not result:
