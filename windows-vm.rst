@@ -70,3 +70,6 @@ Now the group setup:
 - Now add the user to the existing group "Readers"
 
 To get the current IP of the VM in case you need it, start the "PowerShell" (should be in the quick start area of the task bar) and type "ipconfig".
+
+After 10 days the installation will ask for activation.
+Just leave the product key field blank and continue.
