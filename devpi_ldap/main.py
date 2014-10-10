@@ -15,6 +15,9 @@ import sys
 import yaml
 
 
+ldap = None
+
+
 PY3 = sys.version_info[0] == 3
 
 
@@ -208,7 +211,9 @@ class LDAP(dict):
 
 class LDAPConfigAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, LDAP(values))
+        global ldap
+        ldap = LDAP(values)
+        setattr(namespace, self.dest, ldap)
 
 
 def devpiserver_add_parser_options(parser):
@@ -218,8 +223,7 @@ def devpiserver_add_parser_options(parser):
         help="LDAP configuration file")
 
 
-def devpiserver_auth_user(model, username, password):
-    ldap = model.xom.config.args.ldap_config
+def devpiserver_auth_user(userdict, username, password):
     return ldap.validate(username, password)
 
 

@@ -1,5 +1,4 @@
 from __future__ import print_function, unicode_literals
-import mock
 import sys
 import pytest
 import yaml
@@ -160,14 +159,13 @@ class MockLDAP3:
 @pytest.fixture
 def LDAP(MockServer):
     from devpi_ldap.main import LDAP
-    LDAP = LDAP
     LDAP.ldap3 = MockLDAP3()
     LDAP.ldap3.Server = MockServer
     return LDAP
 
 
 @pytest.fixture
-def getpass(monkeypatch):
+def getpass(mock, monkeypatch):
     gp = mock.Mock()
     monkeypatch.setattr("getpass.getpass", gp)
     gp.return_value = ''
@@ -263,7 +261,7 @@ def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, ma
         "Authentication successful, the user is member of the following groups: users"]
 
 
-def test_socket_timeout(LDAP, user_template_config):
+def test_socket_timeout(LDAP, mock, user_template_config):
     from devpi_ldap.main import AuthException
     import socket
     LDAP.ldap3.Connection.open = mock.Mock(side_effect=socket.timeout())
@@ -273,10 +271,33 @@ def test_socket_timeout(LDAP, user_template_config):
     assert e.value.args[0] == "Timeout on LDAP connect to ldap://localhost"
 
 
-def test_ldap_exception(LDAP, user_template_config):
+def test_ldap_exception(LDAP, mock, user_template_config):
     from devpi_ldap.main import AuthException
     LDAP.ldap3.Connection.open = mock.Mock(side_effect=LDAP.LDAPException())
     ldap = LDAP(user_template_config.strpath)
     with pytest.raises(AuthException) as e:
         ldap.validate('user', 'foo')
     assert e.value.args[0] == "Couldn't open LDAP connection to ldap://localhost"
+
+
+class TestAuthPlugin:
+    @pytest.fixture
+    def xom(self, makexom, user_template_config):
+        import devpi_ldap.main
+        xom = makexom(
+            opts=['--ldap-config', user_template_config.strpath],
+            plugins=[(devpi_ldap.main, None)])
+        return xom
+
+    def test_plugin_call(self, LDAP, MockServer, mapp, mock, monkeypatch, testapp):
+        import devpi_ldap.main
+        MockServer.users['user'] = dict(pw="password")
+        validate = mock.Mock()
+        validate.side_effect = LDAP.validate.__get__(
+            devpi_ldap.main.ldap, devpi_ldap.main.ldap.__class__)
+        monkeypatch.setattr(LDAP, 'validate', validate)
+        api = mapp.getapi()
+        r = testapp.post_json(
+            api.login, {"user": 'user', "password": 'password'})
+        assert r.json['message'] == 'login successful'
+        assert validate.called
