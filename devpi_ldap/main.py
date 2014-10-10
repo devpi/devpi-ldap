@@ -222,6 +222,7 @@ def devpiserver_add_parser_options(parser):
 
 def devpiserver_auth_user(userdict, username, password):
     if ldap is None:
+        threadlog.debug("No LDAP settings given on command line.")
         return dict(status="unknown")
     return ldap.validate(username, password)
 
