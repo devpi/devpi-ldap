@@ -186,11 +186,8 @@ class LDAP(dict):
         """ Tries to bind the user against the LDAP server using the supplied
             username and password.
 
-            If no user can be found, returns None.
-            If the binding fails, returns False.
-            On success a list of group names the user is member of will be
-            returned, if no group search is set up, then the list will always
-            be empty.
+            Returns a dictionary with status and if configured groups of the
+            authenticated user.
         """
         threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
         username = escape(username)
