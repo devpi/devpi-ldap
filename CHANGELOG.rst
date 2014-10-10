@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.1 - Unreleased
+1.0.1 - 2014-10-10
 ------------------
 
 - fix the plugin hook
