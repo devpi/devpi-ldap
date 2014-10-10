@@ -261,19 +261,19 @@ def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, ma
         "Authentication successful, the user is member of the following groups: users"]
 
 
-def test_socket_timeout(LDAP, mock, user_template_config):
+def test_socket_timeout(LDAP, mock, monkeypatch, user_template_config):
     from devpi_ldap.main import AuthException
     import socket
-    LDAP.ldap3.Connection.open = mock.Mock(side_effect=socket.timeout())
+    monkeypatch.setattr(LDAP.ldap3.Connection, 'open', mock.Mock(side_effect=socket.timeout()))
     ldap = LDAP(user_template_config.strpath)
     with pytest.raises(AuthException) as e:
         ldap.validate('user', 'foo')
     assert e.value.args[0] == "Timeout on LDAP connect to ldap://localhost"
 
 
-def test_ldap_exception(LDAP, mock, user_template_config):
+def test_ldap_exception(LDAP, mock, monkeypatch, user_template_config):
     from devpi_ldap.main import AuthException
-    LDAP.ldap3.Connection.open = mock.Mock(side_effect=LDAP.LDAPException())
+    monkeypatch.setattr(LDAP.ldap3.Connection, 'open', mock.Mock(side_effect=LDAP.LDAPException()))
     ldap = LDAP(user_template_config.strpath)
     with pytest.raises(AuthException) as e:
         ldap.validate('user', 'foo')
@@ -293,9 +293,8 @@ class TestAuthPlugin:
         import devpi_ldap.main
         MockServer.users['user'] = dict(pw="password")
         validate = mock.Mock()
-        validate.side_effect = LDAP.validate.__get__(
-            devpi_ldap.main.ldap, devpi_ldap.main.ldap.__class__)
-        monkeypatch.setattr(LDAP, 'validate', validate)
+        validate.side_effect = devpi_ldap.main.ldap.validate
+        monkeypatch.setattr(devpi_ldap.main.ldap, 'validate', validate)
         api = mapp.getapi()
         r = testapp.post_json(
             api.login, {"user": 'user', "password": 'password'})
