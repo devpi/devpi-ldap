@@ -92,7 +92,6 @@ An example with user search and Active Directory might look like this:
     ---
     devpi-ldap:
       url: ldap://example.com
-      user_template: CN={username},CN=Partition1,DC=Example,DC=COM
       user_search:
         base: CN=Partition1,DC=Example,DC=COM
         filter: (&(objectClass=user)(sAMAccountName={username}))
