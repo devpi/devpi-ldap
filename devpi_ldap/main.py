@@ -74,7 +74,13 @@ class LDAP(dict):
         else:
             self._validate_search_settings('group_search')
         known_keys = set((
-            'url', 'user_template', 'user_search', 'group_search', 'referrals'))
+            'url',
+            'user_template',
+            'user_search',
+            'group_search',
+            'referrals',
+            'reject_as_unknown',
+        ))
         unknown_keys = set(self.keys()) - known_keys
         if unknown_keys:
             fatal("Unknown option(s) '%s' in LDAP config." % ', '.join(
@@ -182,6 +188,12 @@ class LDAP(dict):
             else:
                 threadlog.error("Multiple results for user '%s' found.")
 
+    def _rejection(self):
+        reject_as_unknown = self.get('reject_as_unknown', False)
+        if reject_as_unknown:
+            return dict(status="unknown")
+        return dict(status="reject")
+
     def validate(self, username, password):
         """ Tries to bind the user against the LDAP server using the supplied
             username and password.
@@ -195,10 +207,10 @@ class LDAP(dict):
         if not userdn:
             return dict(status="unknown")
         if not password.strip():
-            return dict(status="reject")
+            return self._rejection()
         conn = self.connection(self.server(), userdn=userdn, password=password)
         if not self._open_and_bind(conn):
-            return dict(status="reject")
+            return self._rejection()
         config = self.get('group_search', None)
         if not config:
             return dict(status="ok")

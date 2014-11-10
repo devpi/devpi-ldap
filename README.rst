@@ -72,6 +72,13 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
 ``password``
   The password for the user in ``userdn``.
 
+``reject_as_unknown``
+  Report all failed authentication attempts as ``unknown`` instead of
+  ``reject``. This is useful e.g. if using the provided credentials to bind
+  to ldap, in which case we cannot distinguish authentication failures from
+  unknown users. ``unknown`` is required to let other auth hooks attempt to
+  authenticate the user.
+
 The YAML file should then look similar to this:
 
 .. code-block:: yaml
