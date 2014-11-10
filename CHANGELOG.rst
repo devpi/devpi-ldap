@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1.0 - Unreleased
+1.1.0 - 2014-11-10
 ------------------
 
 - add ``reject_as_unknown`` option
