@@ -99,6 +99,16 @@ def group_userdn_search_config(ldap_config):
 
 
 @pytest.fixture
+def reject_as_unknown_config(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "url": "ldap://localhost",
+        "user_template": "{username}",
+        "reject_as_unknown": True,
+    }})
+    return ldap_config
+
+
+@pytest.fixture
 def MockServer():
     class MockServer:
         users = {}
@@ -259,6 +269,16 @@ def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, ma
     assert out.splitlines() == [
         'Result: {"groups": ["users"], "status": "ok"}',
         "Authentication successful, the user is member of the following groups: users"]
+
+
+def test_reject_as_unknown(LDAP, reject_as_unknown_config):
+    ldap = LDAP(reject_as_unknown_config.strpath)
+    assert ldap._rejection() == dict(status="unknown")
+
+
+def test_reject_as_unknown_empty(LDAP, reject_as_unknown_config):
+    ldap = LDAP(reject_as_unknown_config.strpath)
+    assert ldap.validate('user', '') == dict(status="unknown")
 
 
 def test_socket_timeout(LDAP, mock, monkeypatch, user_template_config):
