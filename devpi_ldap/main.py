@@ -13,6 +13,7 @@ import os
 import socket
 import sys
 import yaml
+import re
 
 
 ldap = None
@@ -93,7 +94,7 @@ class LDAP(dict):
                 fatal("Required option '%s' not in LDAP '%s' config." % (
                     key, configname))
         known_keys = set((
-            'base', 'filter', 'scope', 'attribute_name', 'userdn', 'password'))
+            'base', 'filter', 'scope', 'attribute_name', 'userdn', 'password','regex'))
         unknown_keys = set(config.keys()) - known_keys
         if unknown_keys:
             fatal("Unknown option(s) '%s' in LDAP '%s' config." % (
@@ -156,7 +157,12 @@ class LDAP(dict):
             config['base'], search_filter,
             search_scope=search_scope, attributes=[attribute_name])
         if found:
-            return sum((x['attributes'][attribute_name] for x in conn.response), [])
+            if not config['regex']: 
+                return sum((x['attributes'][attribute_name] for x in conn.response), [])
+            # otherwise filter out groups by the regex provided
+            groupresult = sum((x['attributes'][attribute_name] for x in conn.response), [])
+            findwhat = re.compile(config['regex'])
+            return [ findwhat.search(g).group('group') for g in groupresult]
         else:
             threadlog.error("Search failed %s %s: %s" % (search_filter, config, conn.result))
             return []
