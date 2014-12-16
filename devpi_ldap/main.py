@@ -157,7 +157,7 @@ class LDAP(dict):
             config['base'], search_filter,
             search_scope=search_scope, attributes=[attribute_name])
         if found:
-            if not config['regex']: 
+            if 'regex' not in config:
                 return sum((x['attributes'][attribute_name] for x in conn.response), [])
             # otherwise filter out groups by the regex provided
             groupresult = sum((x['attributes'][attribute_name] for x in conn.response), [])
