@@ -12,7 +12,7 @@ You can install it with::
 
     pip install devpi-ldap
 
-For ``devpi-server`` there is no configuration needed, as it will automatically discover the plugin through calling hooks using the setuptools entry points mechanism.
+For ``devpi-server`` there is no configuration needed to activate the plugin, as it will automatically discover the plugin through calling hooks using the setuptools entry points mechanism. However, you need to pass a path with a YAML config file to ``devpi-server``, via the ``--ldap-config`` command-line option. 
 
 Details about LDAP configuration below.
 
