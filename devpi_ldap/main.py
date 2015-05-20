@@ -157,9 +157,11 @@ class LDAP(dict):
             search_scope=search_scope, attributes=[attribute_name])
         if found:
             if any(attribute_name in x['attributes'] for x in conn.response):
-                extract_search = lambda s: s['attributes'][attribute_name]
+                def extract_search(s):
+                    return s['attributes'][attribute_name]
             elif attribute_name in ('dn', 'distinguishedName'):
-                extract_search = lambda s: [s[attribute_name]]
+                def extract_search(s):
+                    return [s[attribute_name]]
             else:
                 threadlog.error('configured attribute_name {} not found in any search results'.format(attribute_name))
                 return []
