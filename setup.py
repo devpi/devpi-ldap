@@ -1,5 +1,6 @@
 from setuptools import setup
 import os
+import sys
 
 
 def get_version(path):
@@ -13,9 +14,16 @@ def get_version(path):
                 return parts[1].split("'")[1]
 
 
+def get_text_from_file(fn):
+    text = open(fn, 'rb').read()
+    if sys.version_info >= (2, 6):
+        return text.decode('utf-8')
+    return text
+
+
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
-CHANGELOG = open(os.path.join(here, 'CHANGELOG.rst')).read()
+README = get_text_from_file(os.path.join(here, 'README.rst'))
+CHANGELOG = get_text_from_file(os.path.join(here, 'CHANGELOG.rst'))
 
 
 setup(
