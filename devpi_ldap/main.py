@@ -156,7 +156,17 @@ class LDAP(dict):
             config['base'], search_filter,
             search_scope=search_scope, attributes=[attribute_name])
         if found:
-            return sum((x['attributes'][attribute_name] for x in conn.response), [])
+            if any(attribute_name in x['attributes'] for x in conn.response):
+                def extract_search(s):
+                    return s['attributes'][attribute_name]
+            elif attribute_name in ('dn', 'distinguishedName'):
+                def extract_search(s):
+                    return [s[attribute_name]]
+            else:
+                threadlog.error('configured attribute_name {} not found in any search results'.format(attribute_name))
+                return []
+
+            return sum((extract_search(x) for x in conn.response), [])
         else:
             threadlog.error("Search failed %s %s: %s" % (search_filter, config, conn.result))
             return []

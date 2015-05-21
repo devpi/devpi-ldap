@@ -140,12 +140,27 @@ class MockConnection:
         return False
 
     def search(self, base, search_filter, search_scope, attributes):
+        # We have some hariness here to simulate the handling for openLDAP
+        # servers that dont return dn as an attribute which we also do in
+        # LDAP._search() in devpi_ldap/main.py
+        class dnplaceholder(object):
+            triggered = False
+
+        def fixDn(user, k):
+            if k in ('dn', 'distinguishedName'):
+                dnplaceholder.triggered = k
+                return dnplaceholder
+            else:
+                raise KeyError()
+
         search_filter = search_filter.split(":")
         if search_filter[0] == 'user':
             user = self.server.users.get(search_filter[1])
             if user is not None:
                 self.response = [dict(attributes=dict(
-                    (k, [user[k]]) for k in attributes))]
+                    (k, [user.get(k, fixDn(user, k))]) for k in attributes if fixDn(user, k) is not dnplaceholder))]
+                if dnplaceholder.triggered:
+                    self.response[0][dnplaceholder.triggered] = search_filter[1]
                 return True
         elif search_filter[0] == 'group':
             user = self.server.users.get(search_filter[1])
@@ -258,6 +273,16 @@ def test_main_user_with_search_with_group(MockServer, capsys, getpass, main, gro
     assert out.splitlines() == [
         'Result: {"groups": ["users"], "status": "ok"}',
         "Authentication successful, the user is member of the following groups: users"]
+
+
+def test_main_user_with_search_nodnattribute(MockServer, capsys, getpass, main, user_search_config):
+    MockServer.users['user'] = dict(pw="password", cn="user")
+    getpass.return_value = 'password'
+    main([user_search_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"status": "ok"}',
+        "Authentication successful, the user is member of the following groups: "]
 
 
 def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, main, group_userdn_search_config):
