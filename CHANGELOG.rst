@@ -4,6 +4,9 @@ Changelog
 1.1.1 - Unreleased
 ------------------
 
+- fix issue #5: dn and distinguishedName may appear as a top level response
+  attribute instead of the attributes list.
+  [kainz (Bryon Roché)]
 
 
 1.1.0 - 2014-11-10
