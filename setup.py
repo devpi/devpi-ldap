@@ -51,7 +51,7 @@ setup(
     install_requires=[
         'PyYAML',
         'devpi-server>=2.0.0',
-        'python3-ldap'],
+        'ldap3'],
     include_package_data=True,
     zip_safe=False,
     packages=['devpi_ldap'])
