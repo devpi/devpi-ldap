@@ -4,6 +4,10 @@ Changelog
 1.1.1 - Unreleased
 ------------------
 
+- set minimum version of ldap3 library, which adds hiding of password in debug
+  logging.
+  [cannatag (Giovanni Cannata), rodcloutier (Rodrigue Cloutier), fschulze]
+
 - change dependency for the ldap library, which was renamed.
   [kumy]
 
