@@ -325,6 +325,19 @@ def test_ldap_exception(LDAP, mock, monkeypatch, user_template_config):
     assert e.value.args[0] == "Couldn't open LDAP connection to ldap://localhost"
 
 
+def test_extra_result_data(LDAP, MockServer, group_user_template_config):
+    class Connection(MockConnection):
+        def search(self, base, search_filter, search_scope, attributes):
+            result = MockConnection.search(self, base, search_filter, search_scope, attributes)
+            if self.response:
+                self.response.insert(0, {})
+            return result
+    MockServer.users['user'] = dict(pw="password", groups=[dict(cn='users')])
+    LDAP.ldap3.Connection = Connection
+    ldap = LDAP(group_user_template_config.strpath)
+    assert ldap.validate('user', 'password') == dict(status="ok", groups=[u'users'])
+
+
 class TestAuthPlugin:
     @pytest.fixture
     def xom(self, makexom, user_template_config):
