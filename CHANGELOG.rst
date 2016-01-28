@@ -15,6 +15,9 @@ Changelog
   attribute instead of the attributes list.
   [kainz (Bryon Roché)]
 
+- fix issue #24: Ignore additional search result data.
+  [bonzani (Patrizio Bonzani), fschulze]
+
 
 1.1.0 - 2014-11-10
 ------------------
