@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1.1 - Unreleased
+1.1.1 - 2016-01-28
 ------------------
 
 - set minimum version of ldap3 library, which adds hiding of password in debug
