@@ -54,4 +54,6 @@ setup(
         'ldap3>=0.9.8.6'],
     include_package_data=True,
     zip_safe=False,
-    packages=['devpi_ldap'])
+    packages=['devpi_ldap'],
+    py_modules=['devpi-ldap'],
+)
