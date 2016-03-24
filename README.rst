@@ -83,7 +83,7 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
 
 ``userdn``
   The distinguished name of the user which should be used for the search operation.
-  If you don't have anonymous user search or if the users can't search their own groups, then you need to set this to a user which has the necessary rights.
+  For ``user_search``, if you don't have anonymous user search or for ``group_search`` if the users can't search their own groups, then you need to set this to a user which has the necessary rights.
 
 ``password``
   The password for the user in ``userdn``.
