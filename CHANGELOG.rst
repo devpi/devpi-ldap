@@ -1,9 +1,14 @@
 Changelog
 =========
 
-1.1.2 - Unreleased
+1.2.0 - Unreleased
 ------------------
 
+- Add support for TLS parameters in the config.
+  [jaraco (Jason R. Coombs)]
+
+- Allow invocation via ``python -m devpi-ldap`` and fix cli for Python 3.
+  [jaraco]
 
 
 1.1.1 - 2016-01-28
