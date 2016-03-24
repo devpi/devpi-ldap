@@ -16,7 +16,7 @@ You can install it with::
 
     pip install devpi-ldap
 
-For ``devpi-server`` there is no configuration needed to activate the plugin, as it will automatically discover the plugin through calling hooks using the setuptools entry points mechanism. However, you need to pass a path with a YAML config file to ``devpi-server``, via the ``--ldap-config`` command-line option. 
+For ``devpi-server`` there is no configuration needed to activate the plugin, as it will automatically discover the plugin through calling hooks using the setuptools entry points mechanism. However, you need to pass a path with a YAML config file to ``devpi-server``, via the ``--ldap-config`` command-line option.
 
 Details about LDAP configuration below.
 
@@ -57,6 +57,11 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   to ldap, in which case we cannot distinguish authentication failures from
   unknown users. ``unknown`` is required to let other auth hooks attempt to
   authenticate the user.
+
+``tls``
+  Parameters to the `ldap3.Tls object
+  <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
+  Transport Layer Security, used with LDAPS connections.
 
 The ``user_search`` and ``group_search`` settings are dictionaries with the following options:
 

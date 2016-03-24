@@ -84,6 +84,7 @@ class LDAP(dict):
             'group_search',
             'referrals',
             'reject_as_unknown',
+            'tls',
         ))
         unknown_keys = set(self.keys()) - known_keys
         if unknown_keys:
@@ -112,7 +113,9 @@ class LDAP(dict):
                 fatal("You have to set a 'password' if you use a 'userdn' in LDAP '%s' config." % configname)
 
     def server(self):
-        return self.ldap3.Server(self['url'])
+        cfg = self.get('tls', None)
+        tls = cfg and self.ldap3.Tls(**cfg)
+        return self.ldap3.Server(self['url'], tls=tls)
 
     def connection(self, server, userdn=None, password=None):
         conn = self.ldap3.Connection(
