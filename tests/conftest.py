@@ -6,3 +6,7 @@ try:
     from test_devpi_server.conftest import proxymock  # noqa
 except ImportError:
     pass
+try:
+    from test_devpi_server.conftest import storage_info  # noqa
+except ImportError:
+    pass
