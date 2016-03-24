@@ -21,6 +21,10 @@ ldap = None
 PY3 = sys.version_info[0] == 3
 
 
+if not PY3:
+    input = eval('raw_input')
+
+
 if PY3:
     def reraise(tp, value, tb=None):
         if value is None:
@@ -266,7 +270,7 @@ def main(argv=None):
     ldap = LDAP(args.config)
     username = args.username
     if not username:
-        username = raw_input("Username: ")
+        username = input("Username: ")
     password = getpass.getpass("Password: ")
     result = ldap.validate(username, password)
     print("Result: %s" % json.dumps(result, sort_keys=True))
