@@ -113,7 +113,7 @@ def MockServer():
     class MockServer:
         users = {}
 
-        def __init__(self, url):
+        def __init__(self, url, tls=None):
             self.url = url
     return MockServer
 
