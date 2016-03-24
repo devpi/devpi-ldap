@@ -140,11 +140,10 @@ class LDAP(dict):
             config['password'] = '********'
         if conn is None:
             if search_userdn is None:
-                conn = self.connection(self.server())
-            else:
-                conn = self.connection(
-                    self.server(),
-                    userdn=search_userdn, password=search_password)
+                search_password = None
+            conn = self.connection(
+                self.server(),
+                userdn=search_userdn, password=search_password)
             if not self._open_and_bind(conn):
                 threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
                 return []
