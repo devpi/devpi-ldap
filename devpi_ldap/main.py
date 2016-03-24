@@ -286,9 +286,13 @@ def main(argv=None):
     password = getpass.getpass("Password: ")
     result = ldap.validate(username, password)
     print("Result: %s" % json.dumps(result, sort_keys=True))
+
     if result["status"] == "unknown":
         print("No user named '%s' found." % username)
-    elif result["status"] == "reject":
+        raise SystemExit(1)
+
+    if result["status"] == "reject":
         print("Authentication of user named '%s' failed." % username)
-    else:
-        print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result.get("groups", [])))
+        raise SystemExit(2)
+
+    print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result.get("groups", [])))
