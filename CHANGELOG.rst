@@ -10,6 +10,9 @@ Changelog
 - Allow invocation via ``python -m devpi-ldap`` and fix cli for Python 3.
   [jaraco]
 
+- Add exit codes to testing script when authentication fails.
+  [jaraco]
+
 
 1.1.1 - 2016-01-28
 ------------------

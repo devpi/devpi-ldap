@@ -209,7 +209,9 @@ def test_empty_password_fails(LDAP, user_template_config):
 
 
 def test_main_no_user(capsys, main, user_template_config):
-    main([user_template_config.strpath, 'user'])
+    with pytest.raises(SystemExit) as e:
+        main([user_template_config.strpath, 'user'])
+    assert e.value.code == 2
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         'Result: {"status": "reject"}',
@@ -227,7 +229,9 @@ def test_main_user(MockServer, capsys, getpass, main, user_template_config):
 
 
 def test_main_no_user_with_search(capsys, main, user_search_config):
-    main([user_search_config.strpath, 'user'])
+    with pytest.raises(SystemExit) as e:
+        main([user_search_config.strpath, 'user'])
+    assert e.value.code == 1
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         'Result: {"status": "unknown"}',
