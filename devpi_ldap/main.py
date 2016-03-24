@@ -131,8 +131,15 @@ class LDAP(dict):
             'whole-subtree': self.ldap3.SEARCH_SCOPE_WHOLE_SUBTREE}
         return scopes[config.get('scope', 'whole-subtree')]
 
-    def _search(self, conn, config, **kw):
-        config = dict(config)
+    def _build_search_conn(self, conn, config):
+        """
+        Given an existing bound connection and ldap search config,
+        assess if the existing connection is suitable for search,
+        and if not, attempt to bind such a connection. Return
+        None if no suitable connection can be bound.
+
+        side-effect: always mutates config to mask a password.
+        """
         search_userdn = config.get('userdn')
         search_password = config.get('password')
         if search_userdn is None:
@@ -150,7 +157,14 @@ class LDAP(dict):
                 userdn=search_userdn, password=search_password)
             if not self._open_and_bind(conn):
                 threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
-                return []
+                return
+        return conn
+
+    def _search(self, conn, config, **kw):
+        config = dict(config)
+        conn = self._build_search_conn(conn, config)
+        if not conn:
+            return []
         search_filter = config['filter'].format(**kw)
         search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
