@@ -135,26 +135,22 @@ class LDAP(dict):
         config = dict(config)
         search_userdn = config.get('userdn')
         search_password = config.get('password')
+        if search_userdn is None:
+            search_password = None
         if 'password' in config:
             # obscure password in logs
             config['password'] = '********'
-        if conn is None:
-            if search_userdn is None:
-                search_password = None
+        needs_conn = (
+            conn is None
+            or (search_userdn is not None and conn.user != search_userdn)
+        )
+        if needs_conn:
             conn = self.connection(
                 self.server(),
                 userdn=search_userdn, password=search_password)
             if not self._open_and_bind(conn):
                 threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
                 return []
-        else:
-            if search_userdn is not None and conn.user != search_userdn:
-                conn = self.connection(
-                    self.server(),
-                    userdn=search_userdn, password=search_password)
-                if not self._open_and_bind(conn):
-                    threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
-                    return []
         search_filter = config['filter'].format(**kw)
         search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
