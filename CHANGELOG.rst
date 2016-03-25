@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2.0 - Unreleased
+1.2.0 - 2016-03-25
 ------------------
 
 - Add support for TLS parameters in the config.
