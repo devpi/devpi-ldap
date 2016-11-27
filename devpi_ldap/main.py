@@ -175,7 +175,7 @@ class LDAP(dict):
             if any(attribute_name in x.get('attributes', {}) for x in conn.response):
                 def extract_search(s):
                     if 'attributes' in s:
-                        return s['attributes'][attribute_name]
+                        return [s['attributes'][attribute_name]]
                     else:
                         return []
             elif attribute_name in ('dn', 'distinguishedName'):
