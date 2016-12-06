@@ -126,9 +126,9 @@ class LDAP(dict):
 
     def _search_scope(self, config):
         scopes = {
-            'base-object': self.ldap3.SEARCH_SCOPE_BASE_OBJECT,
-            'single-level': self.ldap3.SEARCH_SCOPE_SINGLE_LEVEL,
-            'whole-subtree': self.ldap3.SEARCH_SCOPE_WHOLE_SUBTREE}
+            'base-object': self.ldap3.BASE,
+            'single-level': self.ldap3.LEVEL,
+            'whole-subtree': self.ldap3.SUBTREE}
         return scopes[config.get('scope', 'whole-subtree')]
 
     def _build_search_conn(self, conn, config):
@@ -175,7 +175,7 @@ class LDAP(dict):
             if any(attribute_name in x.get('attributes', {}) for x in conn.response):
                 def extract_search(s):
                     if 'attributes' in s:
-                        return s['attributes'][attribute_name]
+                        return [s['attributes'][attribute_name]]
                     else:
                         return []
             elif attribute_name in ('dn', 'distinguishedName'):
