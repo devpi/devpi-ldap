@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.2.2 - Unreleased
+------------------
+
+- More ldap3 2.x fixes.
+  [fschulze]
+
+
 1.2.1 - 2018-05-25
 ------------------
 

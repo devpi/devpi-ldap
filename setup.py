@@ -42,7 +42,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python"] + [
             "Programming Language :: Python :: %s" % x
-            for x in "2 3 2.7 3.4 3.5".split()],
+            for x in "2 3 2.7 3.4 3.5 3.6".split()],
     entry_points={
         'console_scripts': [
             "devpi-ldap = devpi_ldap.main:main"],

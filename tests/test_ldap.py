@@ -1,4 +1,5 @@
 from __future__ import print_function, unicode_literals
+import ldap3
 import sys
 import pytest
 import yaml
@@ -176,9 +177,14 @@ class MockConnection:
 
 class MockLDAP3:
     Connection = MockConnection
-    SEARCH_SCOPE_BASE_OBJECT = 0
-    SEARCH_SCOPE_SINGLE_LEVEL = 1
-    SEARCH_SCOPE_WHOLE_SUBTREE = 2
+    try:
+        BASE = ldap3.BASE
+        LEVEL = ldap3.LEVEL
+        SUBTREE = ldap3.SUBTREE
+    except AttributeError:
+        SEARCH_SCOPE_BASE_OBJECT = ldap3.SEARCH_SCOPE_BASE_OBJECT
+        SEARCH_SCOPE_SINGLE_LEVEL = ldap3.SEARCH_SCOPE_SINGLE_LEVEL
+        SEARCH_SCOPE_WHOLE_SUBTREE = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
 
 
 @pytest.fixture
