@@ -1,7 +1,7 @@
 devpi-ldap: LDAP authentication for devpi-server
 ================================================
 
-.. image:: https://pypip.in/version/devpi-ldap/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/devpi-ldap.svg?style=flat
     :target: https://pypi.python.org/pypi/devpi-ldap/
     :alt: Latest Version
 
