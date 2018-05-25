@@ -4,6 +4,7 @@ Changelog
 1.2.1 - Unreleased
 ------------------
 
+- Stopped testing with Python 2.6, but no changes made which break compatibility.
 
 
 1.2.0 - 2016-03-25
