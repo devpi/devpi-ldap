@@ -125,10 +125,16 @@ class LDAP(dict):
         return conn
 
     def _search_scope(self, config):
-        scopes = {
-            'base-object': self.ldap3.BASE,
-            'single-level': self.ldap3.LEVEL,
-            'whole-subtree': self.ldap3.SUBTREE}
+        try:
+            scopes = {
+                'base-object': self.ldap3.BASE,
+                'single-level': self.ldap3.LEVEL,
+                'whole-subtree': self.ldap3.SUBTREE}
+        except AttributeError:
+            scopes = {
+                'base-object': self.ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                'single-level': self.ldap3.SEARCH_SCOPE_SINGLE_LEVEL,
+                'whole-subtree': self.ldap3.SEARCH_SCOPE_WHOLE_SUBTREE}
         return scopes[config.get('scope', 'whole-subtree')]
 
     def _build_search_conn(self, conn, config):
