@@ -4,6 +4,9 @@ Changelog
 1.2.1 - Unreleased
 ------------------
 
+- Fix compatibility with ldap3 2.x.
+  [fschulze, abrasive (James Laird-Wah)]
+
 - Stopped testing with Python 2.6, but no changes made which break compatibility.
 
 
