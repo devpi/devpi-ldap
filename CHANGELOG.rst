@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2.1 - Unreleased
+1.2.1 - 2018-05-25
 ------------------
 
 - Fix compatibility with ldap3 2.x.
