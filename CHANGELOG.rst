@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2.2 - Unreleased
+1.2.2 - 2018-05-28
 ------------------
 
 - More ldap3 2.x fixes.
