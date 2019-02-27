@@ -118,8 +118,17 @@ class LDAP(dict):
         return self.ldap3.Server(self['url'], tls=tls)
 
     def connection(self, server, userdn=None, password=None):
+        auto_bind_setting = ldap3.AUTO_BIND_NONE
+        tls_cfg = self.get('tls', None)
+        use_ssl_setting = False
+
+        if tls_cfg:
+            auto_bind_setting = ldap3.AUTO_BIND_TLS_BEFORE_BIND
+        if "ldaps://" in self['url'][:8]:
+            use_ssl_setting = True
+
         conn = self.ldap3.Connection(
-            server,
+            server, use_ssl=use_ssl_setting, autobind=auto_bind_setting,
             auto_referrals=self.get('referrals', True),
             read_only=True, user=userdn, password=password)
         return conn
