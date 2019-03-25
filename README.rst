@@ -79,8 +79,11 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
   The default is ``whole-subtree``.
 
 ``attribute_name``
-  The name of the attribute which should be extracted from the search result.
-
+  The name of the attribute which contains the user DN which will be used to check the user's
+  password. ``devpi-ldap`` will extract this attribute from the search results and attempt to
+  bind to the LDAP server using this DN and the password supplied by the user. If this bind
+  succeeds, access is granted.
+  
 ``userdn``
   The distinguished name of the user which should be used for the search operation.
   For ``user_search``, if you don't have anonymous user search or for ``group_search`` if the users can't search their own groups, then you need to set this to a user which has the necessary rights.
