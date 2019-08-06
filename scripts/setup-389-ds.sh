@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eo
+set -eox
 
 apt-get install 389-ds-base
 
