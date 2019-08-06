@@ -3,7 +3,7 @@ set -eox
 
 whoami
 
-sudo apt-get install 389-ds-base
+sudo apt-get install 389-ds-base python3-lib389
 
 
 cat << EOF | sudo tee /root/instance.inf
