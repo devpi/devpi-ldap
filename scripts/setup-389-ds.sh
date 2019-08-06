@@ -1,7 +1,9 @@
 #!/bin/sh
 set -eox
 
-apt-get install 389-ds-base
+whoami
+
+sudo apt-get install 389-ds-base
 
 cat <<EOF > /root/instance.inf
 # /root/instance.inf
@@ -27,8 +29,6 @@ uri = ldapi://%%2fvar%%2frun%%2fslapd-localhost.socket
 basedn = dc=example,dc=com
 binddn = cn=Directory Manager
 EOF
-
-whoami
 
 dsidm localhost user create --uid eve --cn Eve --displayName 'Eve User - Devpi test' --uidNumber 1001 --gidNumber 1001 --homeDirectory /home/eve
 dsidm localhost user create --uid alice --cn Alice --displayName 'Alice User - Devpi test' --uidNumber 1002 --gidNumber 1002 --homeDirectory /home/alice
