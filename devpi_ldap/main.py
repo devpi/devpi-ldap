@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
 from devpi_server.log import threadlog
 try:
     from devpi_server.auth import AuthException
@@ -16,24 +14,6 @@ import yaml
 
 
 ldap = None
-
-
-PY3 = sys.version_info[0] == 3
-
-
-if not PY3:
-    input = eval('raw_input')
-
-
-if PY3:
-    def reraise(tp, value, tb=None):
-        if value is None:
-            value = tp()
-        if value.__traceback__ is not tb:
-            raise value.with_traceback(tb)
-        raise value
-else:
-    exec("""def reraise(tp, value, tb=None):\n    raise tp, value, tb""")
 
 
 def escape(s):
@@ -207,11 +187,11 @@ class LDAP(dict):
         except socket.timeout:
             msg = "Timeout on LDAP connect to %s" % self['url']
             threadlog.exception(msg)
-            reraise(AuthException, AuthException(msg), sys.exc_info()[2])
+            raise AuthException(msg)
         except self.LDAPException:
             msg = "Couldn't open LDAP connection to %s" % self['url']
             threadlog.exception(msg)
-            reraise(AuthException, AuthException(msg), sys.exc_info()[2])
+            raise AuthException(msg)
         return True
 
     def _userdn(self, username):

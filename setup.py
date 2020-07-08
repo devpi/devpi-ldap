@@ -1,6 +1,5 @@
 from setuptools import setup
 import os
-import sys
 
 
 def get_version(path):
@@ -15,10 +14,7 @@ def get_version(path):
 
 
 def get_text_from_file(fn):
-    text = open(fn, 'rb').read()
-    if sys.version_info >= (2, 6):
-        return text.decode('utf-8')
-    return text
+    return open(fn, 'rb').read().decode('utf-8')
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -42,7 +38,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python"] + [
             "Programming Language :: Python :: %s" % x
-            for x in "2 3 2.7 3.4 3.5 3.6".split()],
+            for x in "3 3.5 3.6 3.7 3.8".split()],
     entry_points={
         'console_scripts': [
             "devpi-ldap = devpi_ldap.main:main"],
