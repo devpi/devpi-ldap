@@ -7,6 +7,8 @@ Changelog
 - Drop support for Python < 3.5, support for Python 3.5 will end with its
   EOL in September 2020.
 
+- Fix deprecation warning with devpi-server 6.0.0.
+
 - Fix pluggy deprecation warning.
 
 - Require at least devpi-server 5.0.0.

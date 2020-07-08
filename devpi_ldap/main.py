@@ -1,3 +1,5 @@
+from devpi_common.metadata import Version
+from devpi_server import __version__ as server_version
 from devpi_server.log import threadlog
 from devpi_server.auth import AuthException
 from pluggy import HookimplMarker
@@ -249,12 +251,26 @@ def devpiserver_add_parser_options(parser):
         help="LDAP configuration file")
 
 
-@server_hookimpl
-def devpiserver_auth_user(userdict, username, password):
-    if ldap is None:
-        threadlog.debug("No LDAP settings given on command line.")
-        return dict(status="unknown")
-    return ldap.validate(username, password)
+if Version(server_version) < Version("6dev"):
+    @server_hookimpl
+    def devpiserver_auth_user(userdict, username, password):
+        if ldap is None:
+            threadlog.debug("No LDAP settings given on command line.")
+            return dict(status="unknown")
+        return ldap.validate(username, password)
+else:
+    # because we are making network requests this plugin should run
+    # last, so other plugins which don't require network requests are
+    # running first and can possibly shortcut the authentication
+    @server_hookimpl(trylast=True)
+    def devpiserver_auth_request(request, userdict, username, password):
+        if ldap is None:
+            threadlog.debug("No LDAP settings given on command line.")
+            return None
+        result = ldap.validate(username, password)
+        if result["status"] == "unknown":
+            return None
+        return result
 
 
 def main(argv=None):
