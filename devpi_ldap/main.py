@@ -1,9 +1,5 @@
 from devpi_server.log import threadlog
-try:
-    from devpi_server.auth import AuthException
-except ImportError:
-    class AuthException(Exception):
-        pass
+from devpi_server.auth import AuthException
 import argparse
 import getpass
 import ldap3

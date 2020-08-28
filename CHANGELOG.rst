@@ -7,6 +7,8 @@ Changelog
 - Drop support for Python < 3.5, support for Python 3.5 will end with its
   EOL in September 2020.
 
+- Require at least devpi-server 5.0.0.
+
 
 1.2.2 - 2018-05-28
 ------------------
