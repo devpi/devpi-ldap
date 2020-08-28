@@ -4,6 +4,8 @@ Changelog
 2.0.0 - Unreleased
 ------------------
 
+- The ``reject_as_unknown`` option is now true by default.
+
 - Drop support for Python < 3.5, support for Python 3.5 will end with its
   EOL in September 2020.
 

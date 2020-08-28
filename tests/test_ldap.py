@@ -104,7 +104,7 @@ def reject_as_unknown_config(ldap_config):
     ldap_config.dump({"devpi-ldap": {
         "url": "ldap://localhost",
         "user_template": "{username}",
-        "reject_as_unknown": True,
+        "reject_as_unknown": False,
     }})
     return ldap_config
 
@@ -211,12 +211,22 @@ def main(getpass, LDAP, monkeypatch):
 
 def test_empty_password_fails(LDAP, user_template_config):
     ldap = LDAP(user_template_config.strpath)
-    assert ldap.validate('user', '') == dict(status="reject")
+    assert ldap.validate('user', '') == dict(status="unknown")
 
 
 def test_main_no_user(capsys, main, user_template_config):
     with pytest.raises(SystemExit) as e:
         main([user_template_config.strpath, 'user'])
+    assert e.value.code == 1
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"status": "unknown"}',
+        "No user named 'user' found."]
+
+
+def test_main_no_user_reject_as_unkown(capsys, main, reject_as_unknown_config):
+    with pytest.raises(SystemExit) as e:
+        main([reject_as_unknown_config.strpath, 'user'])
     assert e.value.code == 2
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -308,12 +318,12 @@ def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, ma
 
 def test_reject_as_unknown(LDAP, reject_as_unknown_config):
     ldap = LDAP(reject_as_unknown_config.strpath)
-    assert ldap._rejection() == dict(status="unknown")
+    assert ldap._rejection() == dict(status="reject")
 
 
 def test_reject_as_unknown_empty(LDAP, reject_as_unknown_config):
     ldap = LDAP(reject_as_unknown_config.strpath)
-    assert ldap.validate('user', '') == dict(status="unknown")
+    assert ldap.validate('user', '') == dict(status="reject")
 
 
 def test_socket_timeout(LDAP, mock, monkeypatch, user_template_config):

@@ -207,7 +207,7 @@ class LDAP(dict):
                 threadlog.error("Multiple results for user '%s' found.")
 
     def _rejection(self):
-        reject_as_unknown = self.get('reject_as_unknown', False)
+        reject_as_unknown = self.get('reject_as_unknown', True)
         if reject_as_unknown:
             return dict(status="unknown")
         return dict(status="reject")
