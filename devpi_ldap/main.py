@@ -42,7 +42,7 @@ class LDAP(dict):
         if not os.path.exists(self.path):
             fatal("No config at '%s'." % self.path)
         with open(self.path) as f:
-            _config = yaml.load(f)
+            _config = yaml.safe_load(f)
         self.update(_config.get('devpi-ldap', {}))
         if 'url' not in self:
             fatal("No url in LDAP config.")
