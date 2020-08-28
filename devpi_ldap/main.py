@@ -1,5 +1,6 @@
 from devpi_server.log import threadlog
 from devpi_server.auth import AuthException
+from pluggy import HookimplMarker
 import argparse
 import getpass
 import ldap3
@@ -10,6 +11,7 @@ import yaml
 
 
 ldap = None
+server_hookimpl = HookimplMarker("devpiserver")
 
 
 def escape(s):
@@ -239,6 +241,7 @@ class LDAPConfigAction(argparse.Action):
         setattr(namespace, self.dest, ldap)
 
 
+@server_hookimpl
 def devpiserver_add_parser_options(parser):
     ldap = parser.addgroup("LDAP authentication")
     ldap.addoption(
@@ -246,6 +249,7 @@ def devpiserver_add_parser_options(parser):
         help="LDAP configuration file")
 
 
+@server_hookimpl
 def devpiserver_auth_user(userdict, username, password):
     if ldap is None:
         threadlog.debug("No LDAP settings given on command line.")
