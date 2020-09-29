@@ -4,6 +4,8 @@ Changelog
 2.0.0 - Unreleased
 ------------------
 
+- Add ``timeout`` option for LDAP connections. Defaults to 10 seconds.
+
 - Use ``safe_load`` to read YAML config.
 
 - The ``reject_as_unknown`` option is now true by default.

@@ -58,6 +58,9 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   unknown users. ``unknown`` is required to let other auth hooks attempt to
   authenticate the user.
 
+``timeout``
+  The timeout for connections to the LDAP server. Defaults to 10 seconds.
+
 ``tls``
   Parameters to the `ldap3.Tls object
   <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for

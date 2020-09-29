@@ -14,6 +14,7 @@ import yaml
 
 ldap = None
 server_hookimpl = HookimplMarker("devpiserver")
+DEFAULT_TIMEOUT = 10
 
 
 def escape(s):
@@ -101,6 +102,7 @@ class LDAP(dict):
         conn = self.ldap3.Connection(
             server,
             auto_referrals=self.get('referrals', True),
+            receive_timeout=self.get('timeout', DEFAULT_TIMEOUT),
             read_only=True, user=userdn, password=password)
         return conn
 
@@ -276,7 +278,6 @@ else:
 def main(argv=None):
     import json
     import logging
-    socket.setdefaulttimeout(10)
 
     logging.basicConfig(
         level=logging.DEBUG, format='%(asctime)s %(levelname)-5.5s %(message)s')
