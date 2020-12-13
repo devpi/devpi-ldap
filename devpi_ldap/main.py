@@ -13,6 +13,7 @@ import yaml
 
 
 ldap = None
+notset = object()
 server_hookimpl = HookimplMarker("devpiserver")
 DEFAULT_TIMEOUT = 10
 
@@ -269,7 +270,14 @@ else:
         if ldap is None:
             threadlog.debug("No LDAP settings given on command line.")
             return None
-        result = ldap.validate(username, password)
+        # check for cached result
+        result = getattr(request, '__devpi_ldap_validate_result', notset)
+        if result is notset:
+            result = ldap.validate(username, password)
+            # cache result on request if available
+            if request is not None:
+                # we have to use setattr to avoid name mangling of prefix dunder
+                setattr(request, '__devpi_ldap_validate_result', result)
         if result["status"] == "unknown":
             return None
         return result
