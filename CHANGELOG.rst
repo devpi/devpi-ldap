@@ -10,8 +10,8 @@ Changelog
 
 - The ``reject_as_unknown`` option is now true by default.
 
-- Drop support for Python < 3.5, support for Python 3.5 will end with its
-  EOL in September 2020.
+- Drop support for Python < 3.6, support for Python 3.x will end with their
+  respective EOLs.
 
 - Fix deprecation warning with devpi-server 6.0.0.
 
