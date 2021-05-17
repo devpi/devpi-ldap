@@ -1,0 +1,36 @@
+---
+name: "CI"
+
+on: ["push"]
+
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-latest"
+    env:
+      PY_COLORS: 1
+
+    strategy:
+      matrix:
+        python-version:
+          - "3.6"
+          - "3.9"
+
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install dependencies"
+        run: |
+          set -xe -o nounset
+          python -VV
+          python -m site
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade virtualenv tox tox-gh-actions
+
+      - name: "Run tox targets for ${{ matrix.python-version }}"
+        run: |
+          set -xe -o nounset
+          python -m tox -a -vv
+          python -m tox -v -- -v --color=yes
