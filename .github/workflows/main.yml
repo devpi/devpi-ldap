@@ -1,7 +1,10 @@
 ---
 name: "CI"
 
-on: ["push"]
+on:
+  push:
+  schedule:
+    - cron: '15 4 * * 1'
 
 jobs:
   tests:
