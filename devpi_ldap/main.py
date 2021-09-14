@@ -10,6 +10,7 @@ import os
 import socket
 import sys
 import yaml
+import warnings
 
 
 ldap = None
@@ -46,8 +47,15 @@ class LDAP(dict):
         with open(self.path) as f:
             _config = yaml.safe_load(f)
         self.update(_config.get('devpi-ldap', {}))
-        if 'url' not in self:
-            fatal("No url in LDAP config.")
+        if 'server_pool' not in self and 'url' not in self:
+            fatal("Neither pool nor url in LDAP config.")
+        if 'server_pool' in self:
+            server_pool = self['server_pool']
+            if not isinstance(server_pool, list):
+                fatal("LDAP server pool needs to be a list.")
+            for server in server_pool:
+                if 'url' not in server:
+                    fatal("No url in pool server config.")
         if 'user_template' in self:
             if 'user_search' in self:
                 fatal("The LDAP options 'user_template' and 'user_search' are mutually exclusive.")
@@ -60,6 +68,7 @@ class LDAP(dict):
         else:
             self._validate_search_settings('group_search')
         known_keys = set((
+            'server_pool',
             'url',
             'user_template',
             'user_search',
@@ -95,9 +104,21 @@ class LDAP(dict):
                 fatal("You have to set a 'password' if you use a 'userdn' in LDAP '%s' config." % configname)
 
     def server(self):
-        cfg = self.get('tls', None)
+        warnings.warn("'server()' is deprecated, please use 'server_pool()'.", category=DeprecationWarning, stacklevel=2)
+        return self.server_pool()
+
+    def _server(self, url, cfg):
         tls = cfg and self.ldap3.Tls(**cfg)
-        return self.ldap3.Server(self['url'], tls=tls)
+        return self.ldap3.Server(url, tls=tls)
+
+    def server_pool(self):
+        server_pool = self.ldap3.ServerPool()
+        if 'server_pool' in self:
+            for server in self['server_pool']:
+                server_pool.add(self._server(server['url'], server.get('tls', None)))
+        else:
+            server_pool.add(self._server(self['url'], self.get('tls', None)))
+        return server_pool
 
     def connection(self, server, userdn=None, password=None):
         conn = self.ldap3.Connection(
@@ -142,7 +163,7 @@ class LDAP(dict):
         )
         if needs_conn:
             conn = self.connection(
-                self.server(),
+                self.server_pool(),
                 userdn=search_userdn, password=search_password)
             if not self._open_and_bind(conn):
                 threadlog.error("Search failed, couldn't bind user %s %s: %s" % (search_userdn, config, conn.result))
@@ -188,12 +209,14 @@ class LDAP(dict):
             if not conn.bind():
                 return False
         except socket.timeout:
-            msg = "Timeout on LDAP connect to %s" % self['url']
+            msg = "Timeout on LDAP connect to %s" % conn.server
             threadlog.exception(msg)
+            # TODO: is re-raising an exception here still correct with a pool? Can it still happen?
             raise AuthException(msg)
         except self.LDAPException:
-            msg = "Couldn't open LDAP connection to %s" % self['url']
+            msg = "Couldn't open LDAP connection to %s" % conn.server
             threadlog.exception(msg)
+            # TODO: is re-raising an exception here still correct with a pool? Can it still happen?
             raise AuthException(msg)
         return True
 
@@ -222,14 +245,19 @@ class LDAP(dict):
             Returns a dictionary with status and if configured groups of the
             authenticated user.
         """
-        threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
+        if 'server_pool' in self:
+            threadlog.debug("Validating user '%s' against LDAP at %s." % (username, [
+                server['url'] for server in self['server_pool']
+            ]))
+        else:
+            threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
         username = escape(username)
         userdn = self._userdn(username)
         if not userdn:
             return dict(status="unknown")
         if not password.strip():
             return self._rejection()
-        conn = self.connection(self.server(), userdn=userdn, password=password)
+        conn = self.connection(self.server_pool(), userdn=userdn, password=password)
         if not self._open_and_bind(conn):
             return self._rejection()
         config = self.get('group_search', None)
