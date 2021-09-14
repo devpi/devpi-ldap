@@ -126,3 +126,29 @@ An example with user search and Active Directory might look like this:
         base: CN=Partition1,DC=Example,DC=COM
         filter: (&(objectClass=group)(member={userdn}))
         attribute_name: CN
+
+With a server pool it might look like this:
+
+.. code-block:: yaml
+
+    ---
+    devpi-ldap:
+      server_pool:
+        - url: ldap://server1.example.com:389
+        - url: ldap://server2.example.com:3268
+        - url: ldaps://server3.example.com:636
+          tls:
+            validate: 2 # ssl.CERT_REQUIRED
+            ca_certs_file: /etc/ssl/certs/ca-certificates.crt
+        - url: ldaps://server4.example.com:3269
+          tls:
+            validate: 2 # ssl.CERT_REQUIRED
+            ca_certs_file: /etc/ssl/certs/ca-certificates.crt
+      user_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=user)(sAMAccountName={username}))
+        attribute_name: distinguishedName
+      group_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=group)(member={userdn}))
+        attribute_name: CN
