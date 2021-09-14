@@ -32,6 +32,11 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   Using ``ldaps://`` enables SSL.
   No certificate validation is performed at the moment.
 
+``tls``
+  Parameters to the `ldap3.Tls object
+  <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
+  Transport Layer Security, used with LDAPS connections.
+
 ``user_template``
   The template to generate the distinguished name for the user.
   If the structure is fixed, this is faster than specifying a ``user_search``, but ``devpi-server`` can't know whether a user exists or not.
@@ -60,11 +65,6 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
 
 ``timeout``
   The timeout for connections to the LDAP server. Defaults to 10 seconds.
-
-``tls``
-  Parameters to the `ldap3.Tls object
-  <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
-  Transport Layer Security, used with LDAPS connections.
 
 The ``user_search`` and ``group_search`` settings are dictionaries with the following options:
 
