@@ -37,6 +37,10 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
   Transport Layer Security, used with LDAPS connections.
 
+``server_pool``
+  A list of LDAP pool servers. This takes precedence over an ``url`` item. Either ``server_pool`` or ``url`` is mandatory.
+  A list entry itself is a dictionary containing a mandatory ``url`` item and optionally a ``tls`` item.
+
 ``user_template``
   The template to generate the distinguished name for the user.
   If the structure is fixed, this is faster than specifying a ``user_search``, but ``devpi-server`` can't know whether a user exists or not.
