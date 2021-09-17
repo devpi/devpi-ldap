@@ -38,7 +38,7 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   Transport Layer Security, used with LDAPS connections.
 
 ``server_pool``
-  A list of LDAP pool servers. This takes precedence over an ``url`` item. Either ``server_pool`` or ``url`` is mandatory.
+  A list of LDAP pool servers. Either ``server_pool`` or ``url`` are mandatory, but they are mutually exclusive.
   A list entry itself is a dictionary containing a mandatory ``url`` item and optionally a ``tls`` item.
 
 ``user_template``
