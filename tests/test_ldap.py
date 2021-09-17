@@ -110,18 +110,33 @@ def reject_as_unknown_config(ldap_config):
 
 
 @pytest.fixture
+def MockServerPool():
+    class MockServerPool:
+        def __init__(self):
+            self.servers = list()
+
+        def add(self, server):
+            self.servers.append(server)
+    return MockServerPool
+
+
+@pytest.fixture
 def MockServer():
     class MockServer:
         users = {}
 
         def __init__(self, url, tls=None):
             self.url = url
+
+        def __str__(self):
+            return self.url
     return MockServer
 
 
 class MockConnection:
-    def __init__(self, server, **kw):
-        self.server = server
+    def __init__(self, server_pool, **kw):
+        self.server_pool = server_pool
+        self.server = self.server_pool.servers[0]
         self.user = kw.get('user')
         self.password = kw.get('password')
 
@@ -131,7 +146,7 @@ class MockConnection:
     def bind(self):
         if self.user is None:
             return True
-        user = self.server.users.get(self.user)
+        user = self.server_pool.servers[0].users.get(self.user)
         if user is None:
             self.result = "Bind failed, user not found"
             return False
@@ -156,7 +171,7 @@ class MockConnection:
 
         search_filter = search_filter.split(":")
         if search_filter[0] == 'user':
-            user = self.server.users.get(search_filter[1])
+            user = self.server_pool.servers[0].users.get(search_filter[1])
             if user is not None:
                 self.response = [dict(attributes=dict(
                     (k, [user.get(k, fixDn(user, k))]) for k in attributes if fixDn(user, k) is not dnplaceholder))]
@@ -164,7 +179,7 @@ class MockConnection:
                     self.response[0][dnplaceholder.triggered] = search_filter[1]
                 return True
         elif search_filter[0] == 'group':
-            user = self.server.users.get(search_filter[1])
+            user = self.server_pool.servers[0].users.get(search_filter[1])
             if user is not None and 'groups' in user:
                 self.response = [
                     dict(attributes=dict(
@@ -188,10 +203,11 @@ class MockLDAP3:
 
 
 @pytest.fixture
-def LDAP(MockServer):
+def LDAP(MockServer, MockServerPool):
     from devpi_ldap.main import LDAP
     LDAP.ldap3 = MockLDAP3()
     LDAP.ldap3.Server = MockServer
+    LDAP.ldap3.ServerPool = MockServerPool
     return LDAP
 
 
