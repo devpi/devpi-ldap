@@ -55,6 +55,8 @@ class LDAP(dict):
             server_pool = self['server_pool']
             if not isinstance(server_pool, list):
                 fatal("LDAP 'server_pool' needs to be a list.")
+            if not server_pool:
+                fatal("LDAP 'server_pool' is empty.")
             for server in server_pool:
                 if 'url' not in server:
                     fatal("No 'url' in 'server_pool' server config.")
