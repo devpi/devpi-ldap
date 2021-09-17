@@ -47,6 +47,8 @@ class LDAP(dict):
         with open(self.path) as f:
             _config = yaml.safe_load(f)
         self.update(_config.get('devpi-ldap', {}))
+        if 'server_pool' in self and 'url' in self:
+            fatal("Both 'server_pool' and 'url' in LDAP config. Bad indentation?")
         if 'server_pool' not in self and 'url' not in self:
             fatal("Neither 'server_pool' nor 'url' in LDAP config.")
         if 'server_pool' in self:
