@@ -24,6 +24,66 @@ def ldap_config(tmpdir):
 
 
 @pytest.fixture
+def config_server_pool(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_and_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "url": "ldap://localhost",
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_neither_server_pool_nor_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "oops_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "oops": "ldap://localhost",
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_no_list(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": {
+            "url": "ldap://localhost"
+        },
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_empty_list(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_server_without_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "oops": "ldap://localhost"
+        }],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
 def user_template_config(ldap_config):
     ldap_config.dump({"devpi-ldap": {
         "url": "ldap://localhost",
@@ -223,6 +283,41 @@ def getpass(mock, monkeypatch):
 def main(getpass, LDAP, monkeypatch):
     from devpi_ldap.main import main
     return main
+
+
+def test_server_pool(LDAP, config_server_pool):
+    ldap = LDAP(config_server_pool.strpath)
+    assert len(ldap['server_pool']) == 1
+
+
+def test_server_pool_and_url(LDAP, config_server_pool_and_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_and_url.strpath)
+    assert e.value.code == 1
+
+
+def test_neither_server_pool_nor_url(LDAP, config_neither_server_pool_nor_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_neither_server_pool_nor_url.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_no_list(LDAP, config_server_pool_no_list):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_no_list.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_empty_list(LDAP, config_server_pool_empty_list):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_empty_list.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_server_without_url(LDAP, config_server_pool_server_without_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_server_without_url.strpath)
+    assert e.value.code == 1
 
 
 def test_empty_password_fails(LDAP, user_template_config):
