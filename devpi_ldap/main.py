@@ -48,14 +48,14 @@ class LDAP(dict):
             _config = yaml.safe_load(f)
         self.update(_config.get('devpi-ldap', {}))
         if 'server_pool' not in self and 'url' not in self:
-            fatal("Neither pool nor url in LDAP config.")
+            fatal("Neither 'server_pool' nor 'url' in LDAP config.")
         if 'server_pool' in self:
             server_pool = self['server_pool']
             if not isinstance(server_pool, list):
-                fatal("LDAP server pool needs to be a list.")
+                fatal("LDAP 'server_pool' needs to be a list.")
             for server in server_pool:
                 if 'url' not in server:
-                    fatal("No url in pool server config.")
+                    fatal("No 'url' in 'server_pool' server config.")
         if 'user_template' in self:
             if 'user_search' in self:
                 fatal("The LDAP options 'user_template' and 'user_search' are mutually exclusive.")
