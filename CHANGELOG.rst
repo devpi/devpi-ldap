@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.1.0 - Unreleased
+------------------
+
+- Fix issue #50: new server_pool setting.
+
+
 2.0.0 - 2021-05-16
 ------------------
 
