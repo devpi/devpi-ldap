@@ -32,6 +32,15 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
   Using ``ldaps://`` enables SSL.
   No certificate validation is performed at the moment.
 
+``tls``
+  Parameters to the `ldap3.Tls object
+  <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
+  Transport Layer Security, used with LDAPS connections.
+
+``server_pool``
+  A list of LDAP pool servers. Either ``server_pool`` or ``url`` are mandatory, but they are mutually exclusive.
+  A list entry itself is a dictionary containing a mandatory ``url`` item and optionally a ``tls`` item.
+
 ``user_template``
   The template to generate the distinguished name for the user.
   If the structure is fixed, this is faster than specifying a ``user_search``, but ``devpi-server`` can't know whether a user exists or not.
@@ -60,11 +69,6 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
 
 ``timeout``
   The timeout for connections to the LDAP server. Defaults to 10 seconds.
-
-``tls``
-  Parameters to the `ldap3.Tls object
-  <http://ldap3.readthedocs.org/ssltls.html#the-tls-object>`_ for
-  Transport Layer Security, used with LDAPS connections.
 
 The ``user_search`` and ``group_search`` settings are dictionaries with the following options:
 
@@ -114,6 +118,32 @@ An example with user search and Active Directory might look like this:
     ---
     devpi-ldap:
       url: ldap://example.com
+      user_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=user)(sAMAccountName={username}))
+        attribute_name: distinguishedName
+      group_search:
+        base: CN=Partition1,DC=Example,DC=COM
+        filter: (&(objectClass=group)(member={userdn}))
+        attribute_name: CN
+
+With a server pool it might look like this:
+
+.. code-block:: yaml
+
+    ---
+    devpi-ldap:
+      server_pool:
+        - url: ldap://server1.example.com:389
+        - url: ldap://server2.example.com:3268
+        - url: ldaps://server3.example.com:636
+          tls:
+            validate: 2 # ssl.CERT_REQUIRED
+            ca_certs_file: /etc/ssl/certs/ca-certificates.crt
+        - url: ldaps://server4.example.com:3269
+          tls:
+            validate: 2 # ssl.CERT_REQUIRED
+            ca_certs_file: /etc/ssl/certs/ca-certificates.crt
       user_search:
         base: CN=Partition1,DC=Example,DC=COM
         filter: (&(objectClass=user)(sAMAccountName={username}))

@@ -24,6 +24,66 @@ def ldap_config(tmpdir):
 
 
 @pytest.fixture
+def config_server_pool(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_and_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "url": "ldap://localhost",
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_neither_server_pool_nor_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "oops_pool": [{
+            "url": "ldap://localhost"
+        }],
+        "oops": "ldap://localhost",
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_no_list(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": {
+            "url": "ldap://localhost"
+        },
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_empty_list(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
+def config_server_pool_server_without_url(ldap_config):
+    ldap_config.dump({"devpi-ldap": {
+        "server_pool": [{
+            "oops": "ldap://localhost"
+        }],
+        "user_template": "{username}"}})
+    return ldap_config
+
+
+@pytest.fixture
 def user_template_config(ldap_config):
     ldap_config.dump({"devpi-ldap": {
         "url": "ldap://localhost",
@@ -110,18 +170,33 @@ def reject_as_unknown_config(ldap_config):
 
 
 @pytest.fixture
+def MockServerPool():
+    class MockServerPool:
+        def __init__(self):
+            self.servers = list()
+
+        def add(self, server):
+            self.servers.append(server)
+    return MockServerPool
+
+
+@pytest.fixture
 def MockServer():
     class MockServer:
         users = {}
 
         def __init__(self, url, tls=None):
             self.url = url
+
+        def __str__(self):
+            return self.url
     return MockServer
 
 
 class MockConnection:
-    def __init__(self, server, **kw):
-        self.server = server
+    def __init__(self, server_pool, **kw):
+        self.server_pool = server_pool
+        self.server = self.server_pool.servers[0]
         self.user = kw.get('user')
         self.password = kw.get('password')
 
@@ -131,7 +206,7 @@ class MockConnection:
     def bind(self):
         if self.user is None:
             return True
-        user = self.server.users.get(self.user)
+        user = self.server_pool.servers[0].users.get(self.user)
         if user is None:
             self.result = "Bind failed, user not found"
             return False
@@ -156,7 +231,7 @@ class MockConnection:
 
         search_filter = search_filter.split(":")
         if search_filter[0] == 'user':
-            user = self.server.users.get(search_filter[1])
+            user = self.server_pool.servers[0].users.get(search_filter[1])
             if user is not None:
                 self.response = [dict(attributes=dict(
                     (k, [user.get(k, fixDn(user, k))]) for k in attributes if fixDn(user, k) is not dnplaceholder))]
@@ -164,7 +239,7 @@ class MockConnection:
                     self.response[0][dnplaceholder.triggered] = search_filter[1]
                 return True
         elif search_filter[0] == 'group':
-            user = self.server.users.get(search_filter[1])
+            user = self.server_pool.servers[0].users.get(search_filter[1])
             if user is not None and 'groups' in user:
                 self.response = [
                     dict(attributes=dict(
@@ -188,10 +263,11 @@ class MockLDAP3:
 
 
 @pytest.fixture
-def LDAP(MockServer):
+def LDAP(MockServer, MockServerPool):
     from devpi_ldap.main import LDAP
     LDAP.ldap3 = MockLDAP3()
     LDAP.ldap3.Server = MockServer
+    LDAP.ldap3.ServerPool = MockServerPool
     return LDAP
 
 
@@ -207,6 +283,41 @@ def getpass(mock, monkeypatch):
 def main(getpass, LDAP, monkeypatch):
     from devpi_ldap.main import main
     return main
+
+
+def test_server_pool(LDAP, config_server_pool):
+    ldap = LDAP(config_server_pool.strpath)
+    assert len(ldap['server_pool']) == 1
+
+
+def test_server_pool_and_url(LDAP, config_server_pool_and_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_and_url.strpath)
+    assert e.value.code == 1
+
+
+def test_neither_server_pool_nor_url(LDAP, config_neither_server_pool_nor_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_neither_server_pool_nor_url.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_no_list(LDAP, config_server_pool_no_list):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_no_list.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_empty_list(LDAP, config_server_pool_empty_list):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_empty_list.strpath)
+    assert e.value.code == 1
+
+
+def test_server_pool_server_without_url(LDAP, config_server_pool_server_without_url):
+    with pytest.raises(SystemExit) as e:
+        _ = LDAP(config_server_pool_server_without_url.strpath)
+    assert e.value.code == 1
 
 
 def test_empty_password_fails(LDAP, user_template_config):
