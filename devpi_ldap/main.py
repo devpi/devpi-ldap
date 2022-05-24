@@ -80,6 +80,8 @@ class LDAP(dict):
             'referrals',
             'reject_as_unknown',
             'tls',
+            'login_template',
+            'group_required'
         ))
         unknown_keys = set(self.keys()) - known_keys
         if unknown_keys:
@@ -256,7 +258,11 @@ class LDAP(dict):
         else:
             threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
         username = escape(username)
-        userdn = self._userdn(username)
+        if 'login_template' in self:
+            userdn = self['login_template'].format(self._userdn(username))
+        else:
+            userdn = self._userdn(username)
+
         if not userdn:
             return dict(status="unknown")
         if not password.strip():
@@ -268,6 +274,9 @@ class LDAP(dict):
         if not config:
             return dict(status="ok")
         groups = self._search(conn, config, username=username, userdn=userdn)
+        group_required = self.get('group_required', False)
+        if group_required and len(groups) < 1:
+            return self._rejection()
         return dict(status="ok", groups=groups)
 
 
@@ -342,3 +351,4 @@ def main(argv=None):
         raise SystemExit(2)
 
     print("Authentication successful, the user is member of the following groups: %s" % ', '.join(result.get("groups", [])))
+    
