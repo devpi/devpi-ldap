@@ -70,6 +70,12 @@ To configure LDAP, create a yaml file with a dictionary containing another dicti
 ``timeout``
   The timeout for connections to the LDAP server. Defaults to 10 seconds.
 
+  ``login_template``
+  Template to insert the result from ``user_search`` into before attempting login
+
+  ``group_required``
+  Require the group search to be successful for authentication
+
 The ``user_search`` and ``group_search`` settings are dictionaries with the following options:
 
 ``base``
@@ -90,7 +96,7 @@ The ``user_search`` and ``group_search`` settings are dictionaries with the foll
   password. ``devpi-ldap`` will extract this attribute from the search results and attempt to
   bind to the LDAP server using this DN and the password supplied by the user. If this bind
   succeeds, access is granted.
-  
+
 ``userdn``
   The distinguished name of the user which should be used for the search operation.
   For ``user_search``, if you don't have anonymous user search or for ``group_search`` if the users can't search their own groups, then you need to set this to a user which has the necessary rights.
