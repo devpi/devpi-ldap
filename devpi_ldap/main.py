@@ -2,6 +2,7 @@ from devpi_common.metadata import Version
 from devpi_server import __version__ as server_version
 from devpi_server.log import threadlog
 from devpi_server.auth import AuthException
+from ldap3.utils.conv import escape_filter_chars
 from pluggy import HookimplMarker
 import argparse
 import getpass
@@ -17,18 +18,6 @@ ldap = None
 notset = object()
 server_hookimpl = HookimplMarker("devpiserver")
 DEFAULT_TIMEOUT = 10
-
-
-def escape(s):
-    repl = (
-        ('*', '\\\\2A'),
-        ('(', '\\\\28'),
-        (')', '\\\\29'),
-        ('\\', '\\\\5C'),
-        ('\0', '\\\\00'))
-    for c, r in repl:
-        s = s.replace(c, r)
-    return s
 
 
 def fatal(msg):
@@ -179,7 +168,8 @@ class LDAP(dict):
         conn = self._build_search_conn(conn, config)
         if not conn:
             return []
-        search_filter = config['filter'].format(**kw)
+        escaped_kw = {k: escape_filter_chars(v) for k, v in kw.items()}
+        search_filter = config['filter'].format(**escaped_kw)
         search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
         found = conn.search(
@@ -255,7 +245,6 @@ class LDAP(dict):
             ]))
         else:
             threadlog.debug("Validating user '%s' against LDAP at %s." % (username, self['url']))
-        username = escape(username)
         userdn = self._userdn(username)
         if not userdn:
             return dict(status="unknown")

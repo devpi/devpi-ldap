@@ -1,4 +1,5 @@
 from __future__ import print_function, unicode_literals
+from ldap3.utils.conv import escape_filter_chars
 import ldap3
 import sys
 import pytest
@@ -206,7 +207,7 @@ class MockConnection:
     def bind(self):
         if self.user is None:
             return True
-        user = self.server_pool.servers[0].users.get(self.user)
+        user = self.server_pool.servers[0].users.get(escape_filter_chars(self.user))
         if user is None:
             self.result = "Bind failed, user not found"
             return False
@@ -236,7 +237,8 @@ class MockConnection:
                 self.response = [dict(attributes=dict(
                     (k, [user.get(k, fixDn(user, k))]) for k in attributes if fixDn(user, k) is not dnplaceholder))]
                 if dnplaceholder.triggered:
-                    self.response[0][dnplaceholder.triggered] = search_filter[1]
+                    self.response[0][dnplaceholder.triggered] = user.get(
+                        dnplaceholder.triggered, search_filter[1])
                 return True
         elif search_filter[0] == 'group':
             user = self.server_pool.servers[0].users.get(search_filter[1])
@@ -375,6 +377,16 @@ def test_main_user_with_search(MockServer, capsys, getpass, main, user_search_co
         "Authentication successful, the user is member of the following groups: "]
 
 
+def test_main_user_with_parentheses(MockServer, capsys, getpass, main, user_search_config):
+    MockServer.users['user \\28foo\\29'] = dict(pw="password", dn="user (foo)")
+    getpass.return_value = "password"
+    main([user_search_config.strpath, 'user (foo)'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"status": "ok"}',
+        "Authentication successful, the user is member of the following groups: "]
+
+
 def test_main_user_with_search_userdn(MockServer, capsys, getpass, main, userdn_search_config):
     MockServer.users['search'] = dict(pw="foo", dn="search")
     MockServer.users['user'] = dict(pw="password", dn="user")
@@ -421,6 +433,17 @@ def test_main_user_with_search_userdn_with_group(MockServer, capsys, getpass, ma
     MockServer.users['user'] = dict(pw="password", dn="user", groups=[dict(cn='users')])
     getpass.return_value = "password"
     main([group_userdn_search_config.strpath, 'user'])
+    out, err = capsys.readouterr()
+    assert out.splitlines() == [
+        'Result: {"groups": ["users"], "status": "ok"}',
+        "Authentication successful, the user is member of the following groups: users"]
+
+
+def test_main_user_parentheses_with_search_userdn_with_group(MockServer, capsys, getpass, main, group_userdn_search_config):
+    MockServer.users['search'] = dict(pw="foo", dn="search")
+    MockServer.users['user \\28foo\\29'] = dict(pw="password", dn="user (foo)", groups=[dict(cn='users')])
+    getpass.return_value = "password"
+    main([group_userdn_search_config.strpath, 'user (foo)'])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
         'Result: {"groups": ["users"], "status": "ok"}',

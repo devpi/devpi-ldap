@@ -1,6 +1,13 @@
 Changelog
 =========
 
+2.1.1 - Unreleased
+------------------
+
+- Use ``escape_filter_chars`` before calling LDAP ``search`` method.
+  [mr-scrawley (Micha Schmierer), fschulze]
+
+
 2.1.0 - 2021-12-04
 ------------------
 
