@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.1.1 - Unreleased
+2.1.1 - 2023-08-07
 ------------------
 
 - Use ``escape_filter_chars`` before calling LDAP ``search`` method.

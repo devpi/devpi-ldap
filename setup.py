@@ -29,7 +29,7 @@ setup(
     url="https://github.com/devpi/devpi-ldap",
     version=get_version("devpi_ldap"),
     maintainer="Florian Schulze",
-    maintainer_email="florian.schulze@gmx.net",
+    maintainer_email="mail@pyfidelity.com",
     license="MIT",
     classifiers=[
         "Environment :: Web Environment",
