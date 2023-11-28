@@ -42,3 +42,27 @@ jobs:
           set -xe -o nounset
           python -m tox -a -vv
           python -m tox -v -- -v --color=yes
+
+  flake8:
+    env:
+      PY_COLORS: 1
+
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-python@v4"
+        with:
+          python-version: "3.x"
+      - name: "Install dependencies"
+        shell: "bash"
+        run: |
+          set -xe -o nounset
+          python -VV
+          python -m site
+          python -m pip install --upgrade pip flake8 setuptools wheel
+      - name: "Run flake8"
+        shell: "bash"
+        run: |
+          set -xe -o nounset
+          flake8 --config .flake8 devpi_ldap
