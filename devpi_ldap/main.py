@@ -173,7 +173,7 @@ class LDAP(dict):
         search_scope = self._search_scope(config)
         attribute_name = config['attribute_name']
         found = conn.search(
-            config['base'], search_filter,
+            config['base'], search_filter.decode("utf8"),
             search_scope=search_scope, attributes=[attribute_name])
         if found:
             if any(attribute_name in x.get('attributes', {}) for x in conn.response):
@@ -218,7 +218,7 @@ class LDAP(dict):
         if 'user_template' in self:
             return self['user_template'].format(username=username)
         else:
-            result = self._search(None, self['user_search'], username=username)
+            result = self._search(None, self['user_search'], username=username.encode("utf8"))
             if len(result) == 1:
                 return result[0]
             elif not result:
@@ -256,7 +256,7 @@ class LDAP(dict):
         config = self.get('group_search', None)
         if not config:
             return dict(status="ok")
-        groups = self._search(conn, config, username=username, userdn=userdn)
+        groups = self._search(conn, config, username=username, userdn=userdn.encode("utf8"))
         return dict(status="ok", groups=groups)
 
 
