@@ -4,6 +4,7 @@
 /.coverage
 /.tox/
 /bin/
+/build/
 /dist/
 /htmlcov/
 /include/

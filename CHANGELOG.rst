@@ -1,6 +1,16 @@
 Changelog
 =========
 
+2.2.0 - Unreleased
+------------------
+
+- Drop support for Python < 3.9.
+
+- Add support for Python up to 3.13.
+
+- Require at least ldap3 2.0.9
+
+
 2.1.1 - 2023-08-07
 ------------------
 

@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: MIT
+
+[build-system]
+requires = ["setuptools", "setuptools_changelog_shortener", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+dynamic = ["version", "readme"]
+name = "devpi-ldap"
+description = "devpi-ldap: LDAP authentication for devpi-server"
+dependencies = [
+    "PyYAML",
+    "devpi-server>=6",
+    "ldap3>=2",
+]
+license = "MIT"
+license-files = ["LICENSE"]
+maintainers = [
+    {name = "Florian Schulze", email = "mail@pyfidelity.com"}
+]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+
+[project.urls]
+"Source Code" = "https://github.com/devpi/devpi-ldap"
+
+
+[project.scripts]
+devpi-ldap = "devpi_ldap.main:main"
+
+
+[project.entry-points.devpi_server]
+devpi-ldap = "devpi_ldap.main"
+
+
+[tool.setuptools]
+packages = [
+    "devpi_ldap",
+]
+
+
+[tool.setuptools.dynamic]
+version = {attr = "devpi_ldap.__version__"}
+readme = {file = ["README.rst", "CHANGELOG.short.rst"]}
+
+
+[tool.setuptools_changelog_shortener]
+read_from = "CHANGELOG.rst"
+write_to = "CHANGELOG.short.rst"
+count = 5
+delimiter = "^==+"
+title = "=========\nChangelog\n========="
