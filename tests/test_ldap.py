@@ -1,4 +1,6 @@
 from __future__ import print_function, unicode_literals
+from devpi_common.metadata import parse_version
+from devpi_server import __version__ as _devpi_server_version
 from ldap3.utils.conv import escape_filter_chars
 import ldap3
 import sys
@@ -6,6 +8,7 @@ import pytest
 import yaml
 
 
+devpi_server_version = parse_version(_devpi_server_version)
 pytestmark = [pytest.mark.notransaction]
 
 
@@ -288,6 +291,34 @@ def getpass(mock, monkeypatch):
 def main(getpass, LDAP, monkeypatch):
     from devpi_ldap.main import main
     return main
+
+
+def test_ldap_config_in_cli(makexom, user_template_config):
+    import devpi_ldap.main
+
+    xom = makexom(
+        opts=["--ldap-config", user_template_config], plugins=[(devpi_ldap.main, None)]
+    )
+    assert isinstance(xom.config.args.ldap_config, devpi_ldap.main.LDAP)
+
+
+@pytest.mark.skipif(
+    devpi_server_version < parse_version("6.18.0.dev3"),
+    reason="Needs config parser fix",
+)
+def test_ldap_config_in_yaml(makexom, tmp_path, user_template_config):
+    import devpi_ldap.main
+
+    config = tmp_path / "server.yaml"
+    yml = yaml.dump(
+        {"devpi-server": {"ldap-config": str(user_template_config)}},
+        default_flow_style=False,
+        explicit_start=True,
+    )
+    print(yml, file=sys.stderr)
+    config.write_text(yml)
+    xom = makexom(opts=["-c", config], plugins=[(devpi_ldap.main, None)])
+    assert isinstance(xom.config.args.ldap_config, devpi_ldap.main.LDAP)
 
 
 def test_server_pool(LDAP, config_server_pool):
