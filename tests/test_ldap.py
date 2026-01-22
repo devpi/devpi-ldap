@@ -527,22 +527,31 @@ def test_extra_result_data(LDAP, MockServer, group_user_template_config):
 
 
 class TestAuthPlugin:
-    @pytest.fixture
-    def xom(self, makexom, user_template_config):
+    @pytest.fixture(params=["--configfile", "--ldap-config"])
+    def xom(self, makexom, request, user_template_config):
         import devpi_ldap.main
-        xom = makexom(
-            opts=['--ldap-config', user_template_config.strpath],
-            plugins=[(devpi_ldap.main, None)])
-        return xom
 
-    def test_plugin_call(self, LDAP, MockServer, mapp, mock, monkeypatch, testapp):
+        return makexom(
+            opts=[request.param, user_template_config.strpath],
+            plugins=[(devpi_ldap.main, None)],
+        )
+
+    @pytest.mark.usefixtures("LDAP")
+    def test_plugin_call(self, MockServer, mapp, monkeypatch, testapp):
         import devpi_ldap.main
+
         MockServer.users['user'] = dict(pw="password")
-        validate = mock.Mock()
-        validate.side_effect = devpi_ldap.main.ldap.validate
-        monkeypatch.setattr(devpi_ldap.main.ldap, 'validate', validate)
+        original_validate = devpi_ldap.main.LDAP.validate
+        validate_called = False
+
+        def validate(self, username, password):
+            nonlocal validate_called
+            validate_called = True
+            return original_validate(self, username, password)
+
+        monkeypatch.setattr(devpi_ldap.main.LDAP, "validate", validate)
         api = mapp.getapi()
         r = testapp.post_json(
             api.login, {"user": 'user', "password": 'password'})
         assert r.json['message'] == 'login successful'
-        assert validate.called
+        assert validate_called

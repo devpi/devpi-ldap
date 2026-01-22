@@ -10,6 +10,10 @@ Changelog
 
 - Require at least ldap3 2.0.9
 
+- Require at least devpi-server 6.0.0.
+
+- Support loading configuration from ``--configfile`` option of devpi-server.
+
 
 2.1.1 - 2023-08-07
 ------------------

@@ -1,7 +1,5 @@
-from devpi_common.metadata import Version
-from devpi_server import __version__ as server_version
-from devpi_server.log import threadlog
 from devpi_server.auth import AuthException
+from devpi_server.log import threadlog
 from ldap3.utils.conv import escape_filter_chars
 from pluggy import HookimplMarker
 import argparse
@@ -10,11 +8,10 @@ import ldap3
 import os
 import socket
 import sys
-import yaml
 import warnings
+import yaml
 
 
-ldap = None
 notset = object()
 server_hookimpl = HookimplMarker("devpiserver")
 DEFAULT_TIMEOUT = 10
@@ -262,7 +259,6 @@ class LDAP(dict):
 
 class LDAPConfigAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        global ldap
         ldap = LDAP(values)
         setattr(namespace, self.dest, ldap)
 
@@ -275,33 +271,40 @@ def devpiserver_add_parser_options(parser):
         help="LDAP configuration file")
 
 
-if Version(server_version) < Version("6dev"):
-    @server_hookimpl
-    def devpiserver_auth_user(userdict, username, password):
-        if ldap is None:
-            threadlog.debug("No LDAP settings given on command line.")
-            return dict(status="unknown")
-        return ldap.validate(username, password)
-else:
-    # because we are making network requests this plugin should run
-    # last, so other plugins which don't require network requests are
-    # running first and can possibly shortcut the authentication
-    @server_hookimpl(trylast=True)
-    def devpiserver_auth_request(request, userdict, username, password):
-        if ldap is None:
-            threadlog.debug("No LDAP settings given on command line.")
-            return None
-        # check for cached result
-        result = getattr(request, '__devpi_ldap_validate_result', notset)
-        if result is notset:
-            result = ldap.validate(username, password)
-            # cache result on request if available
-            if request is not None:
-                # we have to use setattr to avoid name mangling of prefix dunder
-                setattr(request, '__devpi_ldap_validate_result', result)
-        if result["status"] == "unknown":
-            return None
-        return result
+# because we are making network requests this plugin should run
+# last, so other plugins which don't require network requests are
+# running first and can possibly shortcut the authentication
+@server_hookimpl(trylast=True)
+def devpiserver_auth_request(
+    request,
+    userdict,  # noqa: ARG001
+    username,
+    password,
+):
+    if "devpi_ldap" not in request.registry:
+        xom = request.registry["xom"]
+        ldap_config = xom.config.args.ldap_config
+        configfile = xom.config.args.configfile
+        if ldap_config is None and configfile is not None:
+            ldap_config = LDAP(configfile)
+        if isinstance(ldap_config, dict) and not isinstance(ldap_config, LDAP):
+            ldap_config = LDAP(ldap_config)
+        request.registry["devpi_ldap"] = ldap_config
+    ldap = request.registry["devpi_ldap"]
+    if ldap is None:
+        threadlog.debug("No LDAP settings given on command line.")
+        return None
+    # check for cached result
+    result = getattr(request, "__devpi_ldap_validate_result", notset)
+    if result is notset:
+        result = ldap.validate(username, password)
+        # cache result on request if available
+        if request is not None:
+            # we have to use setattr to avoid name mangling of prefix dunder
+            setattr(request, "__devpi_ldap_validate_result", result)
+    if result["status"] == "unknown":
+        return None
+    return result
 
 
 def main(argv=None):
