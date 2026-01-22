@@ -184,7 +184,10 @@ class LDAP(dict):
                         return []
             elif attribute_name in ('dn', 'distinguishedName'):
                 def extract_search(s):
-                    return [s[attribute_name]]
+                    if attribute_name in s:
+                        return [s[attribute_name]]
+                    else:
+                        return []
             else:
                 threadlog.error('configured attribute_name {} not found in any search results'.format(attribute_name))
                 return []
