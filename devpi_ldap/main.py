@@ -149,7 +149,7 @@ class LDAP(dict):
             search_password = None
         if 'password' in config:
             # obscure password in logs
-            config['password'] = '********'
+            config["password"] = "********"  # noqa: S105
         needs_conn = (
             conn is None
             or (search_userdn is not None and conn.user != search_userdn)

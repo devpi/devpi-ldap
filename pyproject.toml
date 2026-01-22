@@ -56,6 +56,60 @@ devpi-ldap = "devpi_ldap.main:main"
 devpi-ldap = "devpi_ldap.main"
 
 
+[tool.ruff]
+extend = "ruff-strict.toml"
+
+
+[tool.ruff.format]
+exclude = [
+    "devpi-ldap.py",
+    "devpi_ldap/__init__.py",
+    "devpi_ldap/main.py",
+    "tests/conftest.py",
+    "tests/test_ldap.py",
+]
+
+
+[tool.ruff.lint.extend-per-file-ignores]
+"devpi_ldap/main.py" = [
+    "ARG001", # maybe cleanup later - unused function argument
+    "ARG002", # maybe cleanup later - unused method argument
+    "B904", # maybe cleanup later
+    "C405", # cleanup soon - set literal instead of set call
+    "FIX002", # cleanup later - TODO
+    "I001", # maybe cleanup later - import block unsorted
+    "PLR0912", # maybe cleanup later
+    "PLW0603", # maybe cleanup later - global statement
+    "RET502", # maybe cleanup later - implicit return None
+    "RET503", # maybe cleanup later - missing return
+    "RET504", # maybe cleanup later - unnecessary assignment before return
+    "RET505", # maybe cleanup later - unnecessary elif after return
+    "RUF017", # cleanup soon - avoid quadratic list summation
+    "SIM102", # maybe cleanup later
+    "UP032", # cleanup later - f-string instead of format
+]
+"tests/conftest.py" = [
+    "I001", # maybe cleanup later - import block unsorted
+    "PGH004", # cleanup soon
+    "SIM105", # cleanup soon
+]
+"tests/test_ldap.py" = [
+    "ARG001", # maybe cleanup later - unused function argument
+    "ARG002", # maybe cleanup later - unused method argument
+    "C402", # maybe cleanup later - rewrite as dict comprehension
+    "ERA001", # cleanup soon
+    "I001", # maybe cleanup later - import block unsorted
+    "RET504", # maybe cleanup later - unnecessary assignment before return
+    "RET505", # maybe cleanup later - unnecessary elif after return
+    "RSE102", # maybe cleanup later
+    "RUF012", # cleanup later
+    "RUF059", # cleanup later - unpacked variable unused
+    "UP004", # cleanup later - inherit from 'object'
+    "UP010", # cleanup later
+    "UP025", # maybe cleanup later - unicode literals
+]
+
+
 [tool.setuptools]
 packages = [
     "devpi_ldap",
