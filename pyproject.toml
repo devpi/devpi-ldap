@@ -58,7 +58,7 @@ devpi-ldap = "devpi_ldap.main"
 
 [tool.ruff]
 extend = "ruff-strict.toml"
-
+target-version = "py39"
 
 [tool.ruff.format]
 exclude = [
@@ -96,7 +96,6 @@ exclude = [
     "C402", # maybe cleanup later - rewrite as dict comprehension
     "ERA001", # cleanup soon
     "I001", # maybe cleanup later - import block unsorted
-    "RET504", # maybe cleanup later - unnecessary assignment before return
     "RET505", # maybe cleanup later - unnecessary elif after return
     "RSE102", # maybe cleanup later
     "RUF012", # cleanup later

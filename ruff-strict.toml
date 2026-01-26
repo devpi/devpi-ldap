@@ -8,21 +8,14 @@ ignore = [
     "COM812", # ignore - ruff format
     "D", # ignore - docstrings
     "E501", # ignore - line too long
-    # "E741", # ignore - ambiguous variable name
-    # "EM101", # ignore - string literal in exception
-    # "EM102", # ignore - f-string in exception
     "N", # ignore - naming
-    # "PERF203", # ignore (false positive?) - try-except in loop
     "PLC0415", # ignore - import at top-level of file
     "PLR0913", # ignore - too many arguments
-    # "PLR0915", # ignore - too many statements
     "PLR2004", # ignore - magic value comparison
     "PTH", # ignore - pathlib
     "Q", # ignore - quotes style
-    # "S101", # ignore - asserts
     "SLF001", # ignore - private member accessed
     "TD", # ignore - todos
-    # "TRY003", # ignore - raise vanilla args
     "UP031", # maybe cleanup later - printf string formatting
 ]
 
