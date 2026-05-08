@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.2.0 - Unreleased
+2.2.0 - 2026-05-08
 ------------------
 
 - Drop support for Python < 3.9.
