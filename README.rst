@@ -5,8 +5,6 @@ devpi-ldap: LDAP authentication for devpi-server
     :target: https://pypi.python.org/pypi/devpi-ldap/
     :alt: Latest Version
 
-For use with devpi-server >= 2.1.0.
-
 Installation
 ------------
 
